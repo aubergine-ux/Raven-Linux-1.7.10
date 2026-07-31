@@ -80,12 +80,12 @@ public class MurderMystery extends Module {
                                     if (alertMurderers.isToggled()) {
                                         String c5 = "note.pling";
                                         mc.thePlayer.playSound(c5, 1.0F, 1.0F);
-                                        Utils.Player.sendMessageToSelf(c4 + " &e" + entity.getName() + " &3" + c6);
+                                        Utils.Player.sendMessageToSelf(c4 + " &e" + entity.getCommandSenderName() + " &3" + c6);
                                     }
 
                                     if (announceMurder.isToggled()) {
                                         String msg = Utils.Java.randomChoice(
-                                                new String[] { entity.getName() + " " + c6, entity.getName() });
+                                                new String[] { entity.getCommandSenderName() + " " + c6, entity.getCommandSenderName() });
                                         mc.thePlayer.sendChatMessage(msg);
                                     }
                                 }
@@ -93,11 +93,11 @@ public class MurderMystery extends Module {
                                 det.add(entity);
                                 String c7 = "has a bow!";
                                 if (alertMurderers.isToggled()) {
-                                    Utils.Player.sendMessageToSelf(c4 + " &e" + entity.getName() + " &3" + c7);
+                                    Utils.Player.sendMessageToSelf(c4 + " &e" + entity.getCommandSenderName() + " &3" + c7);
                                 }
 
                                 if (announceMurder.isToggled()) {
-                                    mc.thePlayer.sendChatMessage(entity.getName() + " " + c7);
+                                    mc.thePlayer.sendChatMessage(entity.getCommandSenderName() + " " + c7);
                                 }
 
                             }

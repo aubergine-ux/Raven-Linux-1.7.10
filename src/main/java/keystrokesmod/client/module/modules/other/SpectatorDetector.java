@@ -31,11 +31,11 @@ public class SpectatorDetector extends Module {
                 
                 boolean isSpectator = player.isInvisible() && player.capabilities.allowFlying && player.posY > mc.thePlayer.posY;
                 
-                if (isSpectator && !spectators.contains(player.getName())) {
-                    spectators.add(player.getName());
-                    Utils.Player.sendMessageToSelf("&c[!] &f" + player.getName() + " &cmight be spectating you.");
-                } else if (!isSpectator && spectators.contains(player.getName())) {
-                    spectators.remove(player.getName());
+                if (isSpectator && !spectators.contains(player.getCommandSenderName())) {
+                    spectators.add(player.getCommandSenderName());
+                    Utils.Player.sendMessageToSelf("&c[!] &f" + player.getCommandSenderName() + " &cmight be spectating you.");
+                } else if (!isSpectator && spectators.contains(player.getCommandSenderName())) {
+                    spectators.remove(player.getCommandSenderName());
                 }
             }
         }

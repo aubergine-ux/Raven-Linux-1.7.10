@@ -6,9 +6,6 @@ import keystrokesmod.client.module.setting.impl.SliderSetting;
 import keystrokesmod.client.utils.Utils;
 import net.minecraft.init.Blocks;
 import net.minecraft.network.play.client.C07PacketPlayerDigging;
-import net.minecraft.network.play.client.C07PacketPlayerDigging.Action;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.EnumFacing;
 
 import java.util.TimerTask;
 
@@ -16,7 +13,8 @@ public class BedAura extends Module {
     public static DescriptionSetting d;
     public static SliderSetting r;
     private java.util.Timer t;
-    private BlockPos m;
+    private boolean hasTarget;
+    private int mX, mY, mZ;
     private final long per = 600L;
 
     public BedAura() {
@@ -36,7 +34,7 @@ public class BedAura extends Module {
             this.t = null;
         }
 
-        this.m = null;
+        this.hasTarget = false;
     }
 
     public TimerTask t() {
@@ -48,16 +46,20 @@ public class BedAura extends Module {
                     for (int x = -ra; x <= ra; ++x) {
                         for (int z = -ra; z <= ra; ++z) {
                             if (Utils.Player.isPlayerInGame()) {
-                                BlockPos p = new BlockPos(Module.mc.thePlayer.posX + (double) x,
-                                        Module.mc.thePlayer.posY + (double) y, Module.mc.thePlayer.posZ + (double) z);
-                                boolean bed = Module.mc.theWorld.getBlockState(p).getBlock() == Blocks.bed;
-                                if (BedAura.this.m == p) {
+                                int bx = (int) (Module.mc.thePlayer.posX + (double) x);
+                                int by = (int) (Module.mc.thePlayer.posY + (double) y);
+                                int bz = (int) (Module.mc.thePlayer.posZ + (double) z);
+                                boolean bed = Module.mc.theWorld.getBlock(bx, by, bz) == Blocks.bed;
+                                if (BedAura.this.hasTarget && BedAura.this.mX == bx && BedAura.this.mY == by && BedAura.this.mZ == bz) {
                                     if (!bed) {
-                                        BedAura.this.m = null;
+                                        BedAura.this.hasTarget = false;
                                     }
                                 } else if (bed) {
-                                    BedAura.this.mi(p);
-                                    BedAura.this.m = p;
+                                    BedAura.this.mi(bx, by, bz);
+                                    BedAura.this.mX = bx;
+                                    BedAura.this.mY = by;
+                                    BedAura.this.mZ = bz;
+                                    BedAura.this.hasTarget = true;
                                     break;
                                 }
                             }
@@ -69,10 +71,10 @@ public class BedAura extends Module {
         };
     }
 
-    private void mi(BlockPos p) {
+    private void mi(int x, int y, int z) {
         mc.thePlayer.sendQueue
-                .addToSendQueue(new C07PacketPlayerDigging(Action.START_DESTROY_BLOCK, p, EnumFacing.NORTH));
+                .addToSendQueue(new C07PacketPlayerDigging(0, x, y, z, 2));
         mc.thePlayer.sendQueue
-                .addToSendQueue(new C07PacketPlayerDigging(Action.STOP_DESTROY_BLOCK, p, EnumFacing.NORTH));
+                .addToSendQueue(new C07PacketPlayerDigging(2, x, y, z, 2));
     }
 }

@@ -29,10 +29,10 @@ import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.init.Blocks;
-import net.minecraft.util.BlockPos;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent;
-import net.minecraftforge.fml.relauncher.ReflectionHelper;
+import cpw.mods.fml.common.gameevent.TickEvent;
+import cpw.mods.fml.relauncher.ReflectionHelper;
 
 public class LeftClicker extends Module {
     public static DescriptionSetting bestWithDelayRemover;
@@ -356,10 +356,8 @@ public class LeftClicker extends Module {
 
     public boolean breakBlock() {
         if (breakBlocks.isToggled() && (mc.objectMouseOver != null)) {
-            BlockPos p = mc.objectMouseOver.getBlockPos();
-
-            if (p != null) {
-                Block bl = mc.theWorld.getBlockState(p).getBlock();
+            if (mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+                Block bl = mc.theWorld.getBlock(mc.objectMouseOver.blockX, mc.objectMouseOver.blockY, mc.objectMouseOver.blockZ);
                 if ((bl != Blocks.air) && !(bl instanceof BlockLiquid)) {
                     if (!breakHeld) {
                         int e = mc.gameSettings.keyBindAttack.getKeyCode();

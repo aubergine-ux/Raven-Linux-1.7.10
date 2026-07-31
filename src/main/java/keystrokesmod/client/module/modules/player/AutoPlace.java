@@ -14,8 +14,6 @@ import net.minecraft.block.BlockLiquid;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.EnumFacing;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.MovingObjectPosition.MovingObjectType;
 import net.minecraftforge.client.event.DrawBlockHighlightEvent;
@@ -30,7 +28,8 @@ public class AutoPlace extends Module {
     private long l;
     private int f;
     private MovingObjectPosition lm;
-    private BlockPos lp;
+    private boolean hasLastPos;
+    private int lastPosX, lastPosY, lastPosZ;
 
     public AutoPlace() {
         super("AutoPlace", ModuleCategory.player);
@@ -80,27 +79,32 @@ public class AutoPlace extends Module {
                     if (i != null && i.getItem() instanceof ItemBlock) {
                         MovingObjectPosition m = mc.objectMouseOver;
                         if (m != null && m.typeOfHit == MovingObjectType.BLOCK
-                                && ((m.sideHit != EnumFacing.UP && m.sideHit != EnumFacing.DOWN) || top.isToggled())) {
+                                && ((m.sideHit != 1 && m.sideHit != 0) || top.isToggled())) {
                             if (this.lm != null && (double) this.f < c.getInput()) {
                                 ++this.f;
                             } else {
                                 this.lm = m;
-                                BlockPos pos = m.getBlockPos();
-                                if (this.lp == null || pos.getX() != this.lp.getX() || pos.getY() != this.lp.getY()
-                                        || pos.getZ() != this.lp.getZ()) {
-                                    Block b = mc.theWorld.getBlockState(pos).getBlock();
+                                int blockX = m.blockX;
+                                int blockY = m.blockY;
+                                int blockZ = m.blockZ;
+                                if (!hasLastPos || blockX != this.lastPosX || blockY != this.lastPosY
+                                        || blockZ != this.lastPosZ) {
+                                    Block b = mc.theWorld.getBlock(blockX, blockY, blockZ);
                                     if (b != null && b != Blocks.air && !(b instanceof BlockLiquid)) {
                                         if (!a.isToggled() || Mouse.isButtonDown(1)) {
                                             long n = System.currentTimeMillis();
                                             if (n - this.l >= 25L) {
                                                 this.l = n;
                                                 if (mc.playerController.onPlayerRightClick(mc.thePlayer, mc.theWorld, i,
-                                                        pos, m.sideHit, m.hitVec)) {
+                                                        blockX, blockY, blockZ, m.sideHit, m.hitVec)) {
                                                     Utils.Client.setMouseButtonState(1, true);
                                                     mc.thePlayer.swingItem();
-                                                    mc.getItemRenderer().resetEquippedProgress();
+                                                    mc.entityRenderer.itemRenderer.resetEquippedProgress();
                                                     Utils.Client.setMouseButtonState(1, false);
-                                                    this.lp = pos;
+                                                    this.lastPosX = blockX;
+                                                    this.lastPosY = blockY;
+                                                    this.lastPosZ = blockZ;
+                                                    this.hasLastPos = true;
                                                     this.f = 0;
                                                 }
 
@@ -126,7 +130,10 @@ public class AutoPlace extends Module {
     }
 
     private void rv() {
-        this.lp = null;
+        this.hasLastPos = false;
+        this.lastPosX = 0;
+        this.lastPosY = 0;
+        this.lastPosZ = 0;
         this.lm = null;
         this.f = 0;
     }

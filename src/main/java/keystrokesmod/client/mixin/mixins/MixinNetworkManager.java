@@ -1,6 +1,7 @@
 package keystrokesmod.client.mixin.mixins;
 
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.util.concurrent.GenericFutureListener;
 import keystrokesmod.client.event.EventDirection;
 import keystrokesmod.client.event.impl.PacketEvent;
 import keystrokesmod.client.main.Raven;
@@ -14,8 +15,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(priority = 995, value = NetworkManager.class)
 public class MixinNetworkManager {
 
-    @Inject(method = "sendPacket(Lnet/minecraft/network/Packet;)V", at = @At("HEAD"), cancellable = true)
-    public void sendPacket(Packet p_sendPacket_1_, CallbackInfo ci) {
+    // 1.7.10: NetworkManager.scheduleOutboundPacket(Packet, GenericFutureListener...)
+    // replaces 1.8.9: NetworkManager.sendPacket(Packet)
+    @Inject(method = "scheduleOutboundPacket", at = @At("HEAD"), cancellable = true)
+    public void sendPacket(Packet p_sendPacket_1_, GenericFutureListener[] p_sendPacket_2_, CallbackInfo ci) {
         PacketEvent e = new PacketEvent(p_sendPacket_1_, EventDirection.OUTGOING);
 
         Raven.eventBus.post(e);

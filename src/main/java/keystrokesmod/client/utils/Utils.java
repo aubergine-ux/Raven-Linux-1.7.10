@@ -32,7 +32,6 @@ import org.lwjgl.Sys;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
-import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.gson.JsonObject;
@@ -48,14 +47,12 @@ import keystrokesmod.client.module.setting.impl.SliderSetting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.client.gui.GuiPlayerInfo;
 import net.minecraft.client.gui.inventory.GuiChest;
 import net.minecraft.client.gui.inventory.GuiInventory;
-import net.minecraft.client.network.NetworkPlayerInfo;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.WorldRenderer;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
@@ -78,16 +75,14 @@ import net.minecraft.scoreboard.ScoreObjective;
 import net.minecraft.scoreboard.ScorePlayerTeam;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.BlockPos;
 import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.EntitySelectors;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.StringUtils;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.MouseEvent;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
+import cpw.mods.fml.common.ObfuscationReflectionHelper;
 import net.minecraft.network.play.client.C03PacketPlayer;
 
 public class Utils {
@@ -125,14 +120,14 @@ public class Utils {
         }
 
         public static MovingObjectPosition rayTrace(double reach, float partialTicks) {
-            Entity entity = mc.getRenderViewEntity();
+            EntityLivingBase entity = mc.renderViewEntity;
             if ((entity != null) && (mc.theWorld != null)) {
                 Entity pointedEntity = null;
 
                 MovingObjectPosition objectMouseOver = entity.rayTrace(reach, partialTicks);
                 double distanceToVec = reach;
 
-                Vec3 vec3 = entity.getPositionEyes(partialTicks);
+                Vec3 vec3 = Vec3.createVectorHelper(entity.posX, entity.posY + (double) entity.getEyeHeight(), entity.posZ);
 
                 if (objectMouseOver != null)
                     distanceToVec = objectMouseOver.hitVec.distanceTo(vec3);
@@ -142,14 +137,15 @@ public class Utils {
                 Vec3 vec33 = null;
 
                 float f = 1.0F;
-                List<Entity> list = mc.theWorld.getEntitiesInAABBexcluding(entity, entity.getEntityBoundingBox().addCoord(vec31.xCoord * reach,
-                        vec31.yCoord * reach, vec31.zCoord * reach).expand(f, f, f),
-                        Predicates.and(EntitySelectors.NOT_SPECTATING, Entity::canBeCollidedWith));
+                List list = mc.theWorld.getEntitiesWithinAABBExcludingEntity(entity, entity.boundingBox.addCoord(vec31.xCoord * reach,
+                        vec31.yCoord * reach, vec31.zCoord * reach).expand(f, f, f));
                 double d2 = distanceToVec;
 
-                for (Entity entity1 : list) {
+                for (Object obj : list) {
+                    Entity entity1 = (Entity) obj;
+                    if (!entity1.canBeCollidedWith()) continue;
                     float f1 = entity1.getCollisionBorderSize();
-                    AxisAlignedBB axisalignedbb = entity1.getEntityBoundingBox().expand(f1, f1, f1);
+                    AxisAlignedBB axisalignedbb = entity1.boundingBox.expand(f1, f1, f1);
                     MovingObjectPosition movingobjectposition = axisalignedbb.calculateIntercept(vec3, vec32);
                     if (axisalignedbb.isVecInside(vec3)) {
                         if (d2 >= 0.0D) {
@@ -160,7 +156,7 @@ public class Utils {
                     } else if (movingobjectposition != null) {
                         double d3 = vec3.distanceTo(movingobjectposition.hitVec);
                         if ((d3 < d2) || (d2 == 0.0D))
-                            if ((entity1 == entity.ridingEntity) && !entity.canRiderInteract()) {
+                            if (entity1 == entity.ridingEntity) {
                                 if (d2 == 0.0D) {
                                     pointedEntity = entity1;
                                     vec33 = movingobjectposition.hitVec;
@@ -265,18 +261,20 @@ public class Utils {
             double x = mc.thePlayer.posX;
             double y = mc.thePlayer.posY - 1.0D;
             double z = mc.thePlayer.posZ;
-            BlockPos p = new BlockPos(MathHelper.floor_double(x), MathHelper.floor_double(y),
-                    MathHelper.floor_double(z));
-            return mc.theWorld.isAirBlock(p);
+            int bx = MathHelper.floor_double(x);
+            int by = MathHelper.floor_double(y);
+            int bz = MathHelper.floor_double(z);
+            return mc.theWorld.isAirBlock(bx, by, bz);
         }
 
         public static boolean playerUnderBlock() {
             double x = mc.thePlayer.posX;
             double y = mc.thePlayer.posY + 2.0D;
             double z = mc.thePlayer.posZ;
-            BlockPos p = new BlockPos(MathHelper.floor_double(x), MathHelper.floor_double(y),
-                    MathHelper.floor_double(z));
-            return mc.theWorld.isBlockFullCube(p) || mc.theWorld.isBlockNormalCube(p, false);
+            int bx = MathHelper.floor_double(x);
+            int by = MathHelper.floor_double(y);
+            int bz = MathHelper.floor_double(z);
+            return mc.theWorld.getBlock(bx, by, bz).isNormalCube();
         }
 
         public static int getCurrentPlayerSlot() {
@@ -342,7 +340,7 @@ public class Utils {
         public static int getBlockSlot() {
             for (int i = 0; i < 9; i++) {
                 ItemStack stack = mc.thePlayer.inventory.getStackInSlot(i);
-                if (stack != null && stack.getItem() instanceof ItemBlock && ((ItemBlock) stack.getItem()).getBlock().isFullBlock()) {
+                if (stack != null && stack.getItem() instanceof ItemBlock && ((ItemBlock) stack.getItem()).getBlock().renderAsNormalBlock()) {
                     return i;
                 }
             }
@@ -358,11 +356,10 @@ public class Utils {
             return 0;
         }
 
-        public static void placeBlock(BlockPos pos) {
-            if (pos == null) return;
+        public static void placeBlock(int posX, int posY, int posZ) {
             MovingObjectPosition mop = mc.objectMouseOver;
             if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-                if (mc.playerController.onPlayerRightClick(mc.thePlayer, mc.theWorld, mc.thePlayer.getHeldItem(), mop.getBlockPos(), mop.sideHit, mop.hitVec)) {
+                if (mc.playerController.onPlayerRightClick(mc.thePlayer, mc.theWorld, mc.thePlayer.getHeldItem(), mop.blockX, mop.blockY, mop.blockZ, mop.sideHit, mop.hitVec)) {
                     mc.thePlayer.swingItem();
                 }
             }
@@ -385,7 +382,7 @@ public class Utils {
                 diffY = (en.posY + ((double) en.getEyeHeight() * 0.9D))
                         - (mc.thePlayer.posY + (double) mc.thePlayer.getEyeHeight());
             } else
-                diffY = (((q.getEntityBoundingBox().minY + q.getEntityBoundingBox().maxY) / 2.0D) + ps)
+                diffY = (((q.boundingBox.minY + q.boundingBox.maxY) / 2.0D) + ps)
                 - (mc.thePlayer.posY + (double) mc.thePlayer.getEyeHeight());
 
             double diffZ = q.posZ - mc.thePlayer.posZ;
@@ -543,19 +540,19 @@ public class Utils {
             Item i = is.getItem();
             return (i instanceof ItemEgg) || (i instanceof ItemEnderEye) || (i instanceof ItemEnderPearl)
                     || (i instanceof ItemSnowball) || (i instanceof ItemExpBottle)
-                    || ((i instanceof ItemPotion) && ItemPotion.isSplash(is.getMetadata()));
+                    || ((i instanceof ItemPotion) && ItemPotion.isSplash(is.getItemDamage()));
         }
 
-        public static List<NetworkPlayerInfo> getPlayers() {
-            List<NetworkPlayerInfo> yes = new ArrayList<>();
-            List<NetworkPlayerInfo> mmmm = new ArrayList<>();
+        public static List<GuiPlayerInfo> getPlayers() {
+            List<GuiPlayerInfo> yes = new ArrayList<>();
+            List<GuiPlayerInfo> mmmm = new ArrayList<>();
             try {
-                yes.addAll(mc.getNetHandler().getPlayerInfoMap());
+                yes.addAll(mc.getNetHandler().playerInfoList);
             } catch (NullPointerException r) {
                 return yes;
             }
 
-            for (NetworkPlayerInfo ergy43d : yes)
+            for (GuiPlayerInfo ergy43d : yes)
                 if (!mmmm.contains(ergy43d))
                     mmmm.add(ergy43d);
 
@@ -740,6 +737,15 @@ public class Utils {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+            String os = System.getProperty("os.name").toLowerCase();
+            if (os.contains("linux") || os.contains("nix") || os.contains("nux")) {
+                try {
+                    new ProcessBuilder("xdg-open", uri.toString()).start();
+                    return true;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
             return false;
         }
 
@@ -749,10 +755,31 @@ public class Utils {
                 Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
                 clipboard.setContents(selection, selection);
                 return true;
-            } catch (Exception fuck) {
-                fuck.printStackTrace();
-                return false;
+            } catch (Exception ignored) {
             }
+            String os = System.getProperty("os.name").toLowerCase();
+            if (os.contains("linux") || os.contains("nix") || os.contains("nux")) {
+                String waylandDisplay = System.getenv("WAYLAND_DISPLAY");
+                try {
+                    ProcessBuilder pb;
+                    if (waylandDisplay != null && !waylandDisplay.isEmpty()) {
+                        pb = new ProcessBuilder("wl-copy", content);
+                    } else {
+                        pb = new ProcessBuilder("xclip", "-selection", "clipboard");
+                        pb.redirectInput(ProcessBuilder.Redirect.PIPE);
+                    }
+                    Process p = pb.start();
+                    if (waylandDisplay == null || waylandDisplay.isEmpty()) {
+                        p.getOutputStream().write(content.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                        p.getOutputStream().close();
+                    }
+                    p.waitFor();
+                    return true;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            return false;
         }
 
         public static boolean currentScreenMinecraft() {
@@ -760,7 +787,15 @@ public class Utils {
         }
 
         public static int serverResponseTime() {
-            return mc.getNetHandler().getPlayerInfo(mc.thePlayer.getUniqueID()).getResponseTime();
+            if (mc.getNetHandler() == null || mc.thePlayer == null) return 0;
+            String playerName = mc.thePlayer.getCommandSenderName();
+            for (Object obj : mc.getNetHandler().playerInfoList) {
+                GuiPlayerInfo info = (GuiPlayerInfo) obj;
+                if (info.name.equals(playerName)) {
+                    return info.responseTime;
+                }
+            }
+            return 0;
         }
 
         public static List<String> getPlayersFromScoreboard() {
@@ -1150,51 +1185,49 @@ public class Utils {
         public static boolean ring_c;
         public static Map<Integer, Double> healthDisplay = new ConcurrentHashMap<>();
 
-        public static void re(BlockPos bp, int color, boolean shade) {
-            if (bp != null) {
-                double x = (double) bp.getX() - mc.getRenderManager().viewerPosX;
-                double y = (double) bp.getY() - mc.getRenderManager().viewerPosY;
-                double z = (double) bp.getZ() - mc.getRenderManager().viewerPosZ;
-                GL11.glBlendFunc(770, 771);
-                GL11.glEnable(3042);
-                GL11.glLineWidth(2.0F);
-                GL11.glDisable(3553);
-                GL11.glDisable(2929);
-                GL11.glDepthMask(false);
-                float a = (float) ((color >> 24) & 255) / 255.0F;
-                float r = (float) ((color >> 16) & 255) / 255.0F;
-                float g = (float) ((color >> 8) & 255) / 255.0F;
-                float b = (float) (color & 255) / 255.0F;
-                GL11.glColor4d(r, g, b, a);
-                RenderGlobal.drawSelectionBoundingBox(new AxisAlignedBB(x, y, z, x + 1.0D, y + 1.0D, z + 1.0D));
-                if (shade)
-                    dbb(new AxisAlignedBB(x, y, z, x + 1.0D, y + 1.0D, z + 1.0D), r, g, b);
+        public static void re(int bpX, int bpY, int bpZ, int color, boolean shade) {
+            double x = (double) bpX - RenderManager.instance.renderPosX;
+            double y = (double) bpY - RenderManager.instance.renderPosY;
+            double z = (double) bpZ - RenderManager.instance.renderPosZ;
+            GL11.glBlendFunc(770, 771);
+            GL11.glEnable(3042);
+            GL11.glLineWidth(2.0F);
+            GL11.glDisable(3553);
+            GL11.glDisable(2929);
+            GL11.glDepthMask(false);
+            float a = (float) ((color >> 24) & 255) / 255.0F;
+            float r = (float) ((color >> 16) & 255) / 255.0F;
+            float g = (float) ((color >> 8) & 255) / 255.0F;
+            float b = (float) (color & 255) / 255.0F;
+            GL11.glColor4d(r, g, b, a);
+            RenderGlobal.drawOutlinedBoundingBox(AxisAlignedBB.getBoundingBox(x, y, z, x + 1.0D, y + 1.0D, z + 1.0D), -1);
+            if (shade)
+                dbb(AxisAlignedBB.getBoundingBox(x, y, z, x + 1.0D, y + 1.0D, z + 1.0D), r, g, b);
 
-                GL11.glEnable(3553);
-                GL11.glEnable(2929);
-                GL11.glDepthMask(true);
-                GL11.glDisable(3042);
-            }
+            GL11.glEnable(3553);
+            GL11.glEnable(2929);
+            GL11.glDepthMask(true);
+            GL11.glDisable(3042);
         }
 
         public static void drawBoxAroundEntity(Entity e, int type, double expand, double shift, int color,
                 boolean damage) {
             if (e instanceof EntityLivingBase) {
                 double x = (e.lastTickPosX + ((e.posX - e.lastTickPosX) * (double) Client.getTimer().renderPartialTicks))
-                        - mc.getRenderManager().viewerPosX;
+                        - RenderManager.instance.renderPosX;
                 double y = (e.lastTickPosY + ((e.posY - e.lastTickPosY) * (double) Client.getTimer().renderPartialTicks))
-                        - mc.getRenderManager().viewerPosY;
+                        - RenderManager.instance.renderPosY;
                 double z = (e.lastTickPosZ + ((e.posZ - e.lastTickPosZ) * (double) Client.getTimer().renderPartialTicks))
-                        - mc.getRenderManager().viewerPosZ;
+                        - RenderManager.instance.renderPosZ;
                 float d = (float) expand / 40.0F;
                 if ((e instanceof EntityPlayer) && damage && (((EntityPlayer) e).hurtTime != 0))
                     color = Color.RED.getRGB();
 
-                GlStateManager.pushMatrix();
+                GL11.glPushMatrix();
                 if (type == 3) {
                     GL11.glTranslated(x, y - 0.2D, z);
-                    GL11.glRotated(-mc.getRenderManager().playerViewY, 0.0D, 1.0D, 0.0D);
-                    GlStateManager.disableDepth();
+                    GL11.glRotated(-RenderManager.instance.playerViewY, 0.0D, 1.0D, 0.0D);
+                    GL11.glDisable(GL11.GL_DEPTH_TEST);
                     GL11.glScalef(0.03F + d, 0.03F + d, 0.03F + d);
                     int outline = Color.black.getRGB();
                     int hs = 22;
@@ -1231,7 +1264,7 @@ public class Utils {
                         net.minecraft.client.gui.Gui.drawRect(-hs + 1, vs - cl, hs - 1, vs - 1, st);
                     }
 
-                    GlStateManager.enableDepth();
+                    GL11.glEnable(GL11.GL_DEPTH_TEST);
                 } else {
                     int i;
                     if (type == 4) {
@@ -1251,8 +1284,8 @@ public class Utils {
                                         : (r < 0.7D ? Color.yellow.getRGB() : Color.green.getRGB()));
                         int trailColor = Color.red.getRGB();
                         GL11.glTranslated(x, y - 0.2D, z);
-                        GL11.glRotated(-mc.getRenderManager().playerViewY, 0.0D, 1.0D, 0.0D);
-                        GlStateManager.disableDepth();
+                        GL11.glRotated(-RenderManager.instance.playerViewY, 0.0D, 1.0D, 0.0D);
+                        GL11.glDisable(GL11.GL_DEPTH_TEST);
                         GL11.glScalef(0.03F + d, 0.03F + d, 0.03F + d);
                         i = (int) (21.0D + (shift * 2.0D));
                         net.minecraft.client.gui.Gui.drawRect(i, -1, i + 3, 75, Color.black.getRGB());
@@ -1261,7 +1294,7 @@ public class Utils {
                         if (display > r + 0.01) {
                             net.minecraft.client.gui.Gui.drawRect(i + 1, (int) (74.0D * r), i + 2, b, trailColor);
                         }
-                        GlStateManager.enableDepth();
+                        GL11.glEnable(GL11.GL_DEPTH_TEST);
                     } else if (type == 6)
                         d3p(x, y, z, 0.699999988079071D, 45, 1.5F, color, color == 0);
                     else {
@@ -1274,8 +1307,8 @@ public class Utils {
                         float b = (float) (color & 255) / 255.0F;
                         if (type == 5) {
                             GL11.glTranslated(x, y - 0.2D, z);
-                            GL11.glRotated(-mc.getRenderManager().playerViewY, 0.0D, 1.0D, 0.0D);
-                            GlStateManager.disableDepth();
+                            GL11.glRotated(-RenderManager.instance.playerViewY, 0.0D, 1.0D, 0.0D);
+                            GL11.glDisable(GL11.GL_DEPTH_TEST);
                             GL11.glScalef(0.03F + d, 0.03F, 0.03F + d);
                             int base = 1;
                             d2p(0.0D, 95.0D, 10, 3, Color.black.getRGB());
@@ -1287,11 +1320,11 @@ public class Utils {
                                 d2p(0.0D, 95 + (10 - i), 2, 4, color);
 
                             d2p(0.0D, 95.0D, 8, 3, color);
-                            GlStateManager.enableDepth();
+                            GL11.glEnable(GL11.GL_DEPTH_TEST);
                         } else if (type == 7) {
                             GL11.glTranslated(x, y - 0.2D, z);
-                            GL11.glRotated(-mc.getRenderManager().playerViewY, 0.0D, 1.0D, 0.0D);
-                            GlStateManager.disableDepth();
+                            GL11.glRotated(-RenderManager.instance.playerViewY, 0.0D, 1.0D, 0.0D);
+                            GL11.glDisable(GL11.GL_DEPTH_TEST);
                             GL11.glScalef(0.03F + d, 0.03F + d, 0.03F + d);
 
                             int boxWidth = 20;
@@ -1314,11 +1347,11 @@ public class Utils {
                             net.minecraft.client.gui.Gui.drawRect(boxWidth - lineLen, boxHeight - 2, boxWidth, boxHeight, color);
                             net.minecraft.client.gui.Gui.drawRect(boxWidth - 2, boxHeight - lineLen, boxWidth, boxHeight, color);
 
-                            GlStateManager.enableDepth();
+                            GL11.glEnable(GL11.GL_DEPTH_TEST);
                         } else {
-                            AxisAlignedBB bbox = e.getEntityBoundingBox().expand(0.1D + expand, 0.1D + expand,
+                            AxisAlignedBB bbox = e.boundingBox.expand(0.1D + expand, 0.1D + expand,
                                     0.1D + expand);
-                            AxisAlignedBB axis = new AxisAlignedBB((bbox.minX - e.posX) + x, (bbox.minY - e.posY) + y,
+                            AxisAlignedBB axis = AxisAlignedBB.getBoundingBox((bbox.minX - e.posX) + x, (bbox.minY - e.posY) + y,
                                     (bbox.minZ - e.posZ) + z, (bbox.maxX - e.posX) + x, (bbox.maxY - e.posY) + y,
                                     (bbox.maxZ - e.posZ) + z);
                             GL11.glBlendFunc(770, 771);
@@ -1329,7 +1362,7 @@ public class Utils {
                             GL11.glLineWidth(2.0F);
                             GL11.glColor4f(r, g, b, a);
                             if (type == 1)
-                                RenderGlobal.drawSelectionBoundingBox(axis);
+                                RenderGlobal.drawOutlinedBoundingBox(axis, -1);
                             else if (type == 2)
                                 dbb(axis, r, g, b);
 
@@ -1341,85 +1374,90 @@ public class Utils {
                     }
                 }
 
-                GlStateManager.popMatrix();
+                GL11.glPopMatrix();
             }
         }
 
         public static void dbb(AxisAlignedBB abb, float r, float g, float b) {
             float a = 0.25F;
-            Tessellator ts = Tessellator.getInstance();
-            WorldRenderer vb = ts.getWorldRenderer();
-            vb.begin(7, DefaultVertexFormats.POSITION_COLOR);
-            vb.pos(abb.minX, abb.minY, abb.minZ).color(r, g, b, a).endVertex();
-            vb.pos(abb.minX, abb.maxY, abb.minZ).color(r, g, b, a).endVertex();
-            vb.pos(abb.maxX, abb.minY, abb.minZ).color(r, g, b, a).endVertex();
-            vb.pos(abb.maxX, abb.maxY, abb.minZ).color(r, g, b, a).endVertex();
-            vb.pos(abb.maxX, abb.minY, abb.maxZ).color(r, g, b, a).endVertex();
-            vb.pos(abb.maxX, abb.maxY, abb.maxZ).color(r, g, b, a).endVertex();
-            vb.pos(abb.minX, abb.minY, abb.maxZ).color(r, g, b, a).endVertex();
-            vb.pos(abb.minX, abb.maxY, abb.maxZ).color(r, g, b, a).endVertex();
+            Tessellator ts = Tessellator.instance;
+            ts.startDrawingQuads();
+            ts.setColorRGBA_F(r, g, b, a);
+            ts.addVertex(abb.minX, abb.minY, abb.minZ);
+            ts.addVertex(abb.minX, abb.maxY, abb.minZ);
+            ts.addVertex(abb.maxX, abb.minY, abb.minZ);
+            ts.addVertex(abb.maxX, abb.maxY, abb.minZ);
+            ts.addVertex(abb.maxX, abb.minY, abb.maxZ);
+            ts.addVertex(abb.maxX, abb.maxY, abb.maxZ);
+            ts.addVertex(abb.minX, abb.minY, abb.maxZ);
+            ts.addVertex(abb.minX, abb.maxY, abb.maxZ);
             ts.draw();
-            vb.begin(7, DefaultVertexFormats.POSITION_COLOR);
-            vb.pos(abb.maxX, abb.maxY, abb.minZ).color(r, g, b, a).endVertex();
-            vb.pos(abb.maxX, abb.minY, abb.minZ).color(r, g, b, a).endVertex();
-            vb.pos(abb.minX, abb.maxY, abb.minZ).color(r, g, b, a).endVertex();
-            vb.pos(abb.minX, abb.minY, abb.minZ).color(r, g, b, a).endVertex();
-            vb.pos(abb.minX, abb.maxY, abb.maxZ).color(r, g, b, a).endVertex();
-            vb.pos(abb.minX, abb.minY, abb.maxZ).color(r, g, b, a).endVertex();
-            vb.pos(abb.maxX, abb.maxY, abb.maxZ).color(r, g, b, a).endVertex();
-            vb.pos(abb.maxX, abb.minY, abb.maxZ).color(r, g, b, a).endVertex();
+            ts.startDrawingQuads();
+            ts.setColorRGBA_F(r, g, b, a);
+            ts.addVertex(abb.maxX, abb.maxY, abb.minZ);
+            ts.addVertex(abb.maxX, abb.minY, abb.minZ);
+            ts.addVertex(abb.minX, abb.maxY, abb.minZ);
+            ts.addVertex(abb.minX, abb.minY, abb.minZ);
+            ts.addVertex(abb.minX, abb.maxY, abb.maxZ);
+            ts.addVertex(abb.minX, abb.minY, abb.maxZ);
+            ts.addVertex(abb.maxX, abb.maxY, abb.maxZ);
+            ts.addVertex(abb.maxX, abb.minY, abb.maxZ);
             ts.draw();
-            vb.begin(7, DefaultVertexFormats.POSITION_COLOR);
-            vb.pos(abb.minX, abb.maxY, abb.minZ).color(r, g, b, a).endVertex();
-            vb.pos(abb.maxX, abb.maxY, abb.minZ).color(r, g, b, a).endVertex();
-            vb.pos(abb.maxX, abb.maxY, abb.maxZ).color(r, g, b, a).endVertex();
-            vb.pos(abb.minX, abb.maxY, abb.maxZ).color(r, g, b, a).endVertex();
-            vb.pos(abb.minX, abb.maxY, abb.minZ).color(r, g, b, a).endVertex();
-            vb.pos(abb.minX, abb.maxY, abb.maxZ).color(r, g, b, a).endVertex();
-            vb.pos(abb.maxX, abb.maxY, abb.maxZ).color(r, g, b, a).endVertex();
-            vb.pos(abb.maxX, abb.maxY, abb.minZ).color(r, g, b, a).endVertex();
+            ts.startDrawingQuads();
+            ts.setColorRGBA_F(r, g, b, a);
+            ts.addVertex(abb.minX, abb.maxY, abb.minZ);
+            ts.addVertex(abb.maxX, abb.maxY, abb.minZ);
+            ts.addVertex(abb.maxX, abb.maxY, abb.maxZ);
+            ts.addVertex(abb.minX, abb.maxY, abb.maxZ);
+            ts.addVertex(abb.minX, abb.maxY, abb.minZ);
+            ts.addVertex(abb.minX, abb.maxY, abb.maxZ);
+            ts.addVertex(abb.maxX, abb.maxY, abb.maxZ);
+            ts.addVertex(abb.maxX, abb.maxY, abb.minZ);
             ts.draw();
-            vb.begin(7, DefaultVertexFormats.POSITION_COLOR);
-            vb.pos(abb.minX, abb.minY, abb.minZ).color(r, g, b, a).endVertex();
-            vb.pos(abb.maxX, abb.minY, abb.minZ).color(r, g, b, a).endVertex();
-            vb.pos(abb.maxX, abb.minY, abb.maxZ).color(r, g, b, a).endVertex();
-            vb.pos(abb.minX, abb.minY, abb.maxZ).color(r, g, b, a).endVertex();
-            vb.pos(abb.minX, abb.minY, abb.minZ).color(r, g, b, a).endVertex();
-            vb.pos(abb.minX, abb.minY, abb.maxZ).color(r, g, b, a).endVertex();
-            vb.pos(abb.maxX, abb.minY, abb.maxZ).color(r, g, b, a).endVertex();
-            vb.pos(abb.maxX, abb.minY, abb.minZ).color(r, g, b, a).endVertex();
+            ts.startDrawingQuads();
+            ts.setColorRGBA_F(r, g, b, a);
+            ts.addVertex(abb.minX, abb.minY, abb.minZ);
+            ts.addVertex(abb.maxX, abb.minY, abb.minZ);
+            ts.addVertex(abb.maxX, abb.minY, abb.maxZ);
+            ts.addVertex(abb.minX, abb.minY, abb.maxZ);
+            ts.addVertex(abb.minX, abb.minY, abb.minZ);
+            ts.addVertex(abb.minX, abb.minY, abb.maxZ);
+            ts.addVertex(abb.maxX, abb.minY, abb.maxZ);
+            ts.addVertex(abb.maxX, abb.minY, abb.minZ);
             ts.draw();
-            vb.begin(7, DefaultVertexFormats.POSITION_COLOR);
-            vb.pos(abb.minX, abb.minY, abb.minZ).color(r, g, b, a).endVertex();
-            vb.pos(abb.minX, abb.maxY, abb.minZ).color(r, g, b, a).endVertex();
-            vb.pos(abb.minX, abb.minY, abb.maxZ).color(r, g, b, a).endVertex();
-            vb.pos(abb.minX, abb.maxY, abb.maxZ).color(r, g, b, a).endVertex();
-            vb.pos(abb.maxX, abb.minY, abb.maxZ).color(r, g, b, a).endVertex();
-            vb.pos(abb.maxX, abb.maxY, abb.maxZ).color(r, g, b, a).endVertex();
-            vb.pos(abb.maxX, abb.minY, abb.minZ).color(r, g, b, a).endVertex();
-            vb.pos(abb.maxX, abb.maxY, abb.minZ).color(r, g, b, a).endVertex();
+            ts.startDrawingQuads();
+            ts.setColorRGBA_F(r, g, b, a);
+            ts.addVertex(abb.minX, abb.minY, abb.minZ);
+            ts.addVertex(abb.minX, abb.maxY, abb.minZ);
+            ts.addVertex(abb.minX, abb.minY, abb.maxZ);
+            ts.addVertex(abb.minX, abb.maxY, abb.maxZ);
+            ts.addVertex(abb.maxX, abb.minY, abb.maxZ);
+            ts.addVertex(abb.maxX, abb.maxY, abb.maxZ);
+            ts.addVertex(abb.maxX, abb.minY, abb.minZ);
+            ts.addVertex(abb.maxX, abb.maxY, abb.minZ);
             ts.draw();
-            vb.begin(7, DefaultVertexFormats.POSITION_COLOR);
-            vb.pos(abb.minX, abb.maxY, abb.maxZ).color(r, g, b, a).endVertex();
-            vb.pos(abb.minX, abb.minY, abb.maxZ).color(r, g, b, a).endVertex();
-            vb.pos(abb.minX, abb.maxY, abb.minZ).color(r, g, b, a).endVertex();
-            vb.pos(abb.minX, abb.minY, abb.minZ).color(r, g, b, a).endVertex();
-            vb.pos(abb.maxX, abb.maxY, abb.minZ).color(r, g, b, a).endVertex();
-            vb.pos(abb.maxX, abb.minY, abb.minZ).color(r, g, b, a).endVertex();
-            vb.pos(abb.maxX, abb.maxY, abb.maxZ).color(r, g, b, a).endVertex();
-            vb.pos(abb.maxX, abb.minY, abb.maxZ).color(r, g, b, a).endVertex();
+            ts.startDrawingQuads();
+            ts.setColorRGBA_F(r, g, b, a);
+            ts.addVertex(abb.minX, abb.maxY, abb.maxZ);
+            ts.addVertex(abb.minX, abb.minY, abb.maxZ);
+            ts.addVertex(abb.minX, abb.maxY, abb.minZ);
+            ts.addVertex(abb.minX, abb.minY, abb.minZ);
+            ts.addVertex(abb.maxX, abb.maxY, abb.minZ);
+            ts.addVertex(abb.maxX, abb.minY, abb.minZ);
+            ts.addVertex(abb.maxX, abb.maxY, abb.maxZ);
+            ts.addVertex(abb.maxX, abb.minY, abb.maxZ);
             ts.draw();
         }
 
         public static void dtl(Entity e, int color, float lw) {
             if (e != null) {
                 double x = (e.lastTickPosX + ((e.posX - e.lastTickPosX) * (double) Client.getTimer().renderPartialTicks))
-                        - mc.getRenderManager().viewerPosX;
+                        - RenderManager.instance.renderPosX;
                 double y = ((double) e.getEyeHeight() + e.lastTickPosY
                         + ((e.posY - e.lastTickPosY) * (double) Client.getTimer().renderPartialTicks))
-                        - mc.getRenderManager().viewerPosY;
+                        - RenderManager.instance.renderPosY;
                 double z = (e.lastTickPosZ + ((e.posZ - e.lastTickPosZ) * (double) Client.getTimer().renderPartialTicks))
-                        - mc.getRenderManager().viewerPosZ;
+                        - RenderManager.instance.renderPosZ;
                 float a = (float) ((color >> 24) & 255) / 255.0F;
                 float r = (float) ((color >> 16) & 255) / 255.0F;
                 float g = (float) ((color >> 8) & 255) / 255.0F;
@@ -1468,23 +1506,24 @@ public class Utils {
             float f5 = (float) ((endColor >> 16) & 255) / 255.0F;
             float f6 = (float) ((endColor >> 8) & 255) / 255.0F;
             float f7 = (float) (endColor & 255) / 255.0F;
-            GlStateManager.disableTexture2D();
-            GlStateManager.enableBlend();
-            GlStateManager.disableAlpha();
-            GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
-            GlStateManager.shadeModel(7425);
-            Tessellator tessellator = Tessellator.getInstance();
-            WorldRenderer worldrenderer = tessellator.getWorldRenderer();
-            worldrenderer.begin(7, DefaultVertexFormats.POSITION_COLOR);
-            worldrenderer.pos(right, top, 0.0D).color(f1, f2, f3, f).endVertex();
-            worldrenderer.pos(left, top, 0.0D).color(f1, f2, f3, f).endVertex();
-            worldrenderer.pos(left, bottom, 0.0D).color(f5, f6, f7, f4).endVertex();
-            worldrenderer.pos(right, bottom, 0.0D).color(f5, f6, f7, f4).endVertex();
+            GL11.glDisable(GL11.GL_TEXTURE_2D);
+            GL11.glEnable(GL11.GL_BLEND);
+            GL11.glDisable(GL11.GL_ALPHA_TEST);
+            GL11.glBlendFunc(770, 771);
+            GL11.glShadeModel(7425);
+            Tessellator tessellator = Tessellator.instance;
+            tessellator.startDrawingQuads();
+            tessellator.setColorRGBA_F(f1, f2, f3, f);
+            tessellator.addVertex(right, top, 0.0D);
+            tessellator.addVertex(left, top, 0.0D);
+            tessellator.setColorRGBA_F(f5, f6, f7, f4);
+            tessellator.addVertex(left, bottom, 0.0D);
+            tessellator.addVertex(right, bottom, 0.0D);
             tessellator.draw();
-            GlStateManager.shadeModel(7424);
-            GlStateManager.disableBlend();
-            GlStateManager.enableAlpha();
-            GlStateManager.enableTexture2D();
+            GL11.glShadeModel(7424);
+            GL11.glDisable(GL11.GL_BLEND);
+            GL11.glEnable(GL11.GL_ALPHA_TEST);
+            GL11.glEnable(GL11.GL_TEXTURE_2D);
         }
 
         public static void db(int w, int h, int r) {
@@ -1545,23 +1584,21 @@ public class Utils {
             float r = (float) ((color >> 16) & 255) / 255.0F;
             float g = (float) ((color >> 8) & 255) / 255.0F;
             float b = (float) (color & 255) / 255.0F;
-            Tessellator tessellator = Tessellator.getInstance();
-            WorldRenderer worldrenderer = tessellator.getWorldRenderer();
-            GlStateManager.enableBlend();
-            GlStateManager.disableTexture2D();
-            GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
-            GlStateManager.color(r, g, b, a);
-            worldrenderer.begin(6, DefaultVertexFormats.POSITION);
+            Tessellator tessellator = Tessellator.instance;
+            GL11.glEnable(GL11.GL_BLEND);
+            GL11.glDisable(GL11.GL_TEXTURE_2D);
+            GL11.glBlendFunc(770, 771);
+            GL11.glColor4f(r, g, b, a);
+            tessellator.startDrawing(6);
 
             for (int i = 0; i < sides; ++i) {
                 double angle = ((6.283185307179586D * (double) i) / (double) sides) + Math.toRadians(180.0D);
-                worldrenderer.pos(x + (Math.sin(angle) * (double) radius), y + (Math.cos(angle) * (double) radius), 0.0D)
-                .endVertex();
+                tessellator.addVertex(x + (Math.sin(angle) * (double) radius), y + (Math.cos(angle) * (double) radius), 0.0D);
             }
 
             tessellator.draw();
-            GlStateManager.enableTexture2D();
-            GlStateManager.disableBlend();
+            GL11.glEnable(GL11.GL_TEXTURE_2D);
+            GL11.glDisable(GL11.GL_BLEND);
         }
 
         public static void d3p(double x, double y, double z, double radius, int sides, float lineWidth, int color,
@@ -1570,7 +1607,7 @@ public class Utils {
             float r = (float) ((color >> 16) & 255) / 255.0F;
             float g = (float) ((color >> 8) & 255) / 255.0F;
             float b = (float) (color & 255) / 255.0F;
-            mc.entityRenderer.disableLightmap();
+            mc.entityRenderer.disableLightmap(0.0);
             GL11.glDisable(3553);
             GL11.glEnable(3042);
             GL11.glBlendFunc(770, 771);
@@ -1613,7 +1650,7 @@ public class Utils {
             GL11.glEnable(2929);
             GL11.glDisable(3042);
             GL11.glEnable(3553);
-            mc.entityRenderer.enableLightmap();
+            mc.entityRenderer.enableLightmap(0.0);
         }
 
         public enum PositionMode {

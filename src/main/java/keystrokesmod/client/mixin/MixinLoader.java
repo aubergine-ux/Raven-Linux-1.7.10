@@ -1,6 +1,6 @@
 package keystrokesmod.client.mixin;
 
-import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
+import cpw.mods.fml.relauncher.IFMLLoadingPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.launch.MixinBootstrap;
@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.Mixins;
 
 import java.util.Map;
 
-@IFMLLoadingPlugin.MCVersion("1.8.9")
+@IFMLLoadingPlugin.MCVersion("1.7.10")
 public class MixinLoader implements IFMLLoadingPlugin {
     public MixinLoader() {
         MixinBootstrap.init();

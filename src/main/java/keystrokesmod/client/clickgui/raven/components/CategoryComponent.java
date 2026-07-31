@@ -17,7 +17,6 @@ import keystrokesmod.client.utils.Utils;
 import keystrokesmod.client.utils.font.FontUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
-import net.minecraft.client.renderer.GlStateManager;
 
 public class CategoryComponent extends Component {
     public ArrayList<ModuleComponent> modulesInCategory = new ArrayList<>();
@@ -148,7 +147,7 @@ public class CategoryComponent extends Component {
                 else RenderUtils.drawRoundedOutline(x, y, x2, y2, 12, 3, GuiModule.getCategoryOutlineColor2());
             } else if (!GuiModule.isRoundedToggled()) Gui.drawRect(x, y, x2, y2, GuiModule.getCategoryOutlineColor1());
             else RenderUtils.drawRoundedOutline(x, y, x2, y2, 12, 3, GuiModule.getCategoryOutlineColor1());
-            GlStateManager.resetColor();
+            GL11.glColor4f(1f, 1f, 1f, 1f);
         }
 
         // category name

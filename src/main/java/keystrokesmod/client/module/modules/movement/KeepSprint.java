@@ -7,6 +7,7 @@ import keystrokesmod.client.module.setting.impl.DescriptionSetting;
 import keystrokesmod.client.module.setting.impl.SliderSetting;
 import keystrokesmod.client.module.setting.impl.TickSetting;
 import net.minecraft.entity.Entity;
+import net.minecraft.util.Vec3;
 
 public class KeepSprint extends Module {
     public static DescriptionSetting a, a2;
@@ -26,7 +27,7 @@ public class KeepSprint extends Module {
         double dist;
         Module reach = Raven.moduleManager.getModuleByClazz(Reach.class);
         if (c.isToggled() && reach != null && reach.isEnabled() && !mc.thePlayer.capabilities.isCreativeMode) {
-            dist = mc.objectMouseOver.hitVec.distanceTo(mc.getRenderViewEntity().getPositionEyes(1.0F));
+            dist = mc.objectMouseOver.hitVec.distanceTo(Vec3.createVectorHelper(mc.renderViewEntity.posX, mc.renderViewEntity.posY + mc.renderViewEntity.getEyeHeight(), mc.renderViewEntity.posZ));
             double val;
             if (dist > 3.0D) {
                 val = (100.0D - (double) ((float) b.getInput())) / 100.0D;

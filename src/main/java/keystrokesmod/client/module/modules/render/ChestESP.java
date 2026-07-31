@@ -50,7 +50,7 @@ public class ChestESP extends Module {
                         te = (TileEntity) var3.next();
                     } while (!(te instanceof TileEntityChest) && !(te instanceof TileEntityEnderChest));
 
-                    Utils.HUD.re(te.getPos(), rgb, true);
+                    Utils.HUD.re(te.xCoord, te.yCoord, te.zCoord, rgb, true);
                 }
             }
         }

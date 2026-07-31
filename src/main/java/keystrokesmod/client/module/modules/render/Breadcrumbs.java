@@ -7,10 +7,8 @@ import keystrokesmod.client.module.setting.impl.RGBSetting;
 import keystrokesmod.client.module.setting.impl.SliderSetting;
 import keystrokesmod.client.module.setting.impl.TickSetting;
 import keystrokesmod.client.utils.Utils;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.WorldRenderer;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import org.lwjgl.opengl.GL11;
 
@@ -89,8 +87,7 @@ public class Breadcrumbs extends Module {
         GL11.glDepthMask(false);
         GL11.glLineWidth((float) lineWidth.getInput());
 
-        Tessellator tessellator = Tessellator.getInstance();
-        WorldRenderer wr = tessellator.getWorldRenderer();
+        Tessellator tessellator = Tessellator.instance;
 
         if (fade.isToggled()) {
             int total = points.size();
@@ -98,21 +95,24 @@ public class Breadcrumbs extends Module {
                 double[] p1 = points.get(i);
                 double[] p2 = points.get(i + 1);
                 float alpha = (float) i / total;
-                wr.begin(GL11.GL_LINES, DefaultVertexFormats.POSITION_COLOR);
-                wr.pos(p1[0] - mc.getRenderManager().viewerPosX,
-                       p1[1] - mc.getRenderManager().viewerPosY,
-                       p1[2] - mc.getRenderManager().viewerPosZ).color(r, g, b, alpha * 0.8f).endVertex();
-                wr.pos(p2[0] - mc.getRenderManager().viewerPosX,
-                       p2[1] - mc.getRenderManager().viewerPosY,
-                       p2[2] - mc.getRenderManager().viewerPosZ).color(r, g, b, alpha * 0.8f).endVertex();
+                tessellator.startDrawing(GL11.GL_LINES);
+                tessellator.setColorRGBA_F(r, g, b, alpha * 0.8f);
+                tessellator.addVertex(p1[0] - RenderManager.renderPosX,
+                       p1[1] - RenderManager.renderPosY,
+                       p1[2] - RenderManager.renderPosZ);
+                tessellator.setColorRGBA_F(r, g, b, alpha * 0.8f);
+                tessellator.addVertex(p2[0] - RenderManager.renderPosX,
+                       p2[1] - RenderManager.renderPosY,
+                       p2[2] - RenderManager.renderPosZ);
                 tessellator.draw();
             }
         } else {
-            wr.begin(GL11.GL_LINE_STRIP, DefaultVertexFormats.POSITION_COLOR);
+            tessellator.startDrawing(GL11.GL_LINE_STRIP);
             for (double[] p : points) {
-                wr.pos(p[0] - mc.getRenderManager().viewerPosX,
-                       p[1] - mc.getRenderManager().viewerPosY,
-                       p[2] - mc.getRenderManager().viewerPosZ).color(r, g, b, 0.8f).endVertex();
+                tessellator.setColorRGBA_F(r, g, b, 0.8f);
+                tessellator.addVertex(p[0] - RenderManager.renderPosX,
+                       p[1] - RenderManager.renderPosY,
+                       p[2] - RenderManager.renderPosZ);
             }
             tessellator.draw();
         }

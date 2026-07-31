@@ -173,7 +173,7 @@ public class SafeWalk extends Module {
             return;
         if (mc.currentScreen == null) {
             if (shouldBridge) {
-                ScaledResolution res = new ScaledResolution(mc);
+                ScaledResolution res = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
 
                 int totalBlocks = 0;
                 if (BlockAmountInfo.values()[(int) blockShowMode.getInput()
@@ -203,14 +203,14 @@ public class SafeWalk extends Module {
                 }
 
                 String t = totalBlocks + " blocks";
-                int x = res.getScaledWidth() / 2 - mc.fontRendererObj.getStringWidth(t) / 2;
+                int x = res.getScaledWidth() / 2 - mc.fontRenderer.getStringWidth(t) / 2;
                 int y;
                 if (Raven.debugger) {
-                    y = res.getScaledHeight() / 2 + 17 + mc.fontRendererObj.FONT_HEIGHT;
+                    y = res.getScaledHeight() / 2 + 17 + mc.fontRenderer.FONT_HEIGHT;
                 } else {
                     y = res.getScaledHeight() / 2 + 15;
                 }
-                mc.fontRendererObj.drawString(t, (float) x, (float) y, rgb, false);
+                mc.fontRenderer.drawString(t, (float) x, (float) y, rgb, false);
             }
         }
     }

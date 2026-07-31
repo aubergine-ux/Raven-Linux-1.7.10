@@ -6,7 +6,7 @@ import keystrokesmod.client.module.Module;
 import keystrokesmod.client.module.setting.impl.DescriptionSetting;
 import keystrokesmod.client.utils.Utils;
 import net.minecraft.client.Minecraft;
-import net.minecraftforge.fml.relauncher.ReflectionHelper;
+import cpw.mods.fml.relauncher.ReflectionHelper;
 
 import java.lang.reflect.Field;
 

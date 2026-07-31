@@ -9,8 +9,6 @@ import keystrokesmod.client.utils.Utils;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.tileentity.TileEntityEnderChest;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.EnumFacing;
 import net.minecraft.util.Vec3;
 
 import java.util.Iterator;
@@ -39,13 +37,15 @@ public class ChestAura extends Module {
             TileEntity te = (TileEntity) iterator.next();
             if (!shouldOpen(te)) continue;
 
-            BlockPos pos = te.getPos();
-            double dist = mc.thePlayer.getDistance(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
+            int x = te.xCoord;
+            int y = te.yCoord;
+            int z = te.zCoord;
+            double dist = mc.thePlayer.getDistance(x + 0.5, y + 0.5, z + 0.5);
             if (dist > r) continue;
 
             mc.thePlayer.swingItem();
             mc.playerController.onPlayerRightClick(mc.thePlayer, mc.theWorld, mc.thePlayer.getHeldItem(),
-                    pos, EnumFacing.UP, new Vec3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5));
+                    x, y, z, 1, Vec3.createVectorHelper(x + 0.5, y + 0.5, z + 0.5));
             lastOpenTime = System.currentTimeMillis();
             break;
         }

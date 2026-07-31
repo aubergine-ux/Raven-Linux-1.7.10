@@ -297,6 +297,7 @@ public class NoFall extends Module {
         C04PacketPlayerPosition packet = new C04PacketPlayerPosition(
             mc.thePlayer.posX,
             mc.thePlayer.posY,
+            mc.thePlayer.posY + 1.62,
             mc.thePlayer.posZ,
             true
         );

@@ -157,7 +157,7 @@ public class Backtrack extends Module {
                 packetQueue.add(new QueueData(packet, System.currentTimeMillis()));
             } else {
                 // Server position handling
-                Vec3 serverPos = new Vec3(target.posX, target.posY, target.posZ);
+                Vec3 serverPos = Vec3.createVectorHelper(target.posX, target.posY, target.posZ);
                 positions.add(new Vec3Data(serverPos, System.currentTimeMillis()));
             }
         }
@@ -175,14 +175,14 @@ public class Backtrack extends Module {
                 }
                 
                 packetQueue.add(new QueueData(packet, currentTime));
-                positions.add(new Vec3Data(new Vec3(target.posX, target.posY, target.posZ), currentTime));
+                positions.add(new Vec3Data(Vec3.createVectorHelper(target.posX, target.posY, target.posZ), currentTime));
             }
         }
     }
     
     @Subscribe
     public void onPacketReceive(PacketEvent event) {
-        Packet<?> packet = event.getPacket();
+        Packet packet = event.getPacket();
         
         if (packet instanceof S18PacketEntityTeleport) {
             S18PacketEntityTeleport teleport = (S18PacketEntityTeleport) packet;
@@ -193,7 +193,7 @@ public class Backtrack extends Module {
             }
         } else if (packet instanceof S14PacketEntity) {
             S14PacketEntity entityPacket = (S14PacketEntity) packet;
-            Entity entity = entityPacket.getEntity(mc.theWorld);
+            Entity entity = mc.theWorld.getEntityByID(entityPacket.entityId);
             if (entity instanceof EntityLivingBase && entity == target) {
                 handleEntityMove((EntityLivingBase) entity);
             }
@@ -201,7 +201,7 @@ public class Backtrack extends Module {
     }
     
     private void handleTeleport(EntityLivingBase entity) {
-        Vec3 newPos = new Vec3(entity.posX, entity.posY, entity.posZ);
+        Vec3 newPos = Vec3.createVectorHelper(entity.posX, entity.posY, entity.posZ);
         positions.add(new Vec3Data(newPos, System.currentTimeMillis()));
         
         if (!backtrackedPlayer.containsKey(entity)) {
@@ -218,7 +218,7 @@ public class Backtrack extends Module {
     }
     
     private void handleEntityMove(EntityLivingBase entity) {
-        Vec3 newPos = new Vec3(entity.posX, entity.posY, entity.posZ);
+        Vec3 newPos = Vec3.createVectorHelper(entity.posX, entity.posY, entity.posZ);
         
         if (!backtrackedPlayer.containsKey(entity)) {
             backtrackedPlayer.put(entity, new ArrayList<>());
@@ -315,10 +315,10 @@ public class Backtrack extends Module {
     
     // Helper classes
     private static class QueueData {
-        public final Packet<?> packet;
+        public final Packet packet;
         public final long timestamp;
         
-        public QueueData(Packet<?> packet, long timestamp) {
+        public QueueData(Packet packet, long timestamp) {
             this.packet = packet;
             this.timestamp = timestamp;
         }

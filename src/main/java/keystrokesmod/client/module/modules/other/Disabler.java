@@ -1,6 +1,7 @@
 package keystrokesmod.client.module.modules.other;
 
 import com.google.common.eventbus.Subscribe;
+import cpw.mods.fml.common.ObfuscationReflectionHelper;
 import keystrokesmod.client.event.impl.PacketEvent;
 import keystrokesmod.client.module.Module;
 import keystrokesmod.client.module.setting.impl.ComboSetting;
@@ -9,6 +10,7 @@ import keystrokesmod.client.module.setting.impl.DoubleSliderSetting;
 import keystrokesmod.client.utils.Utils;
 import net.minecraft.network.Packet;
 import net.minecraft.network.play.client.C00PacketKeepAlive;
+import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
 import net.minecraft.network.play.client.C0FPacketConfirmTransaction;
 import net.minecraft.util.EnumChatFormatting;
 
@@ -73,18 +75,27 @@ public class Disabler extends Module {
                 mmc = false;
             }
         } else if (mode.getMode() == Mode.Grim) {
-            if (e.getPacket() instanceof net.minecraft.network.play.client.C08PacketPlayerBlockPlacement) {
-                net.minecraft.network.play.client.C08PacketPlayerBlockPlacement packet = (net.minecraft.network.play.client.C08PacketPlayerBlockPlacement) e.getPacket();
+            if (e.getPacket() instanceof C08PacketPlayerBlockPlacement) {
+                C08PacketPlayerBlockPlacement packet = (C08PacketPlayerBlockPlacement) e.getPacket();
                 if (packet.getPlacedBlockDirection() >= 0 && packet.getPlacedBlockDirection() <= 5) {
                     e.cancel();
-                    mc.getNetHandler().addToSendQueue(new net.minecraft.network.play.client.C08PacketPlayerBlockPlacement(
-                            packet.getPosition(),
-                            6 + packet.getPlacedBlockDirection() * 7,
-                            packet.getStack(),
-                            packet.getPlacedBlockOffsetX(),
-                            packet.getPlacedBlockOffsetY(),
-                            packet.getPlacedBlockOffsetZ()
-                    ));
+                    try {
+                        int px = (Integer) ObfuscationReflectionHelper.getPrivateValue(C08PacketPlayerBlockPlacement.class, packet, "xPosition", "field_149583_a");
+                        int py = (Integer) ObfuscationReflectionHelper.getPrivateValue(C08PacketPlayerBlockPlacement.class, packet, "yPosition", "field_149581_b");
+                        int pz = (Integer) ObfuscationReflectionHelper.getPrivateValue(C08PacketPlayerBlockPlacement.class, packet, "zPosition", "field_149582_c");
+                        mc.getNetHandler().addToSendQueue(new C08PacketPlayerBlockPlacement(
+                                px,
+                                py,
+                                pz,
+                                6 + packet.getPlacedBlockDirection() * 7,
+                                packet.getStack(),
+                                packet.getPlacedBlockOffsetX(),
+                                packet.getPlacedBlockOffsetY(),
+                                packet.getPlacedBlockOffsetZ()
+                        ));
+                    } catch (Exception ex) {
+                        // Failed to read packet fields
+                    }
                 }
             }
         } else if (mode.getMode() == Mode.Watchdog) {

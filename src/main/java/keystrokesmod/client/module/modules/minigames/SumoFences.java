@@ -6,16 +6,13 @@ import keystrokesmod.client.module.Module;
 import keystrokesmod.client.module.setting.impl.DescriptionSetting;
 import keystrokesmod.client.module.setting.impl.SliderSetting;
 import keystrokesmod.client.utils.Utils;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
-import net.minecraft.util.BlockPos;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.MovingObjectPosition.MovingObjectType;
 import net.minecraftforge.client.event.MouseEvent;
 import org.lwjgl.input.Mouse;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.TimerTask;
 
 public class SumoFences extends Module {
@@ -24,27 +21,22 @@ public class SumoFences extends Module {
     public static SliderSetting b;
     public static SliderSetting c;
     private java.util.Timer t;
-    private final List<String> m = Arrays.asList("Sumo", "Space Mine", "White Crystal");
-    private IBlockState f;
-    private static final List<BlockPos> f_p = Arrays.asList(new BlockPos(9, 65, -2), new BlockPos(9, 65, -1),
-            new BlockPos(9, 65, 0), new BlockPos(9, 65, 1), new BlockPos(9, 65, 2), new BlockPos(9, 65, 3),
-            new BlockPos(8, 65, 3), new BlockPos(8, 65, 4), new BlockPos(8, 65, 5), new BlockPos(7, 65, 5),
-            new BlockPos(7, 65, 6), new BlockPos(7, 65, 7), new BlockPos(6, 65, 7), new BlockPos(5, 65, 7),
-            new BlockPos(5, 65, 8), new BlockPos(4, 65, 8), new BlockPos(3, 65, 8), new BlockPos(3, 65, 9),
-            new BlockPos(2, 65, 9), new BlockPos(1, 65, 9), new BlockPos(0, 65, 9), new BlockPos(-1, 65, 9),
-            new BlockPos(-2, 65, 9), new BlockPos(-3, 65, 9), new BlockPos(-3, 65, 8), new BlockPos(-4, 65, 8),
-            new BlockPos(-5, 65, 8), new BlockPos(-5, 65, 7), new BlockPos(-6, 65, 7), new BlockPos(-7, 65, 7),
-            new BlockPos(-7, 65, 6), new BlockPos(-7, 65, 5), new BlockPos(-8, 65, 5), new BlockPos(-8, 65, 4),
-            new BlockPos(-8, 65, 3), new BlockPos(-9, 65, 3), new BlockPos(-9, 65, 2), new BlockPos(-9, 65, 1),
-            new BlockPos(-9, 65, 0), new BlockPos(-9, 65, -1), new BlockPos(-9, 65, -2), new BlockPos(-9, 65, -3),
-            new BlockPos(-8, 65, -3), new BlockPos(-8, 65, -4), new BlockPos(-8, 65, -5), new BlockPos(-7, 65, -5),
-            new BlockPos(-7, 65, -6), new BlockPos(-7, 65, -7), new BlockPos(-6, 65, -7), new BlockPos(-5, 65, -7),
-            new BlockPos(-5, 65, -8), new BlockPos(-4, 65, -8), new BlockPos(-3, 65, -8), new BlockPos(-3, 65, -9),
-            new BlockPos(-2, 65, -9), new BlockPos(-1, 65, -9), new BlockPos(0, 65, -9), new BlockPos(1, 65, -9),
-            new BlockPos(2, 65, -9), new BlockPos(3, 65, -9), new BlockPos(3, 65, -8), new BlockPos(4, 65, -8),
-            new BlockPos(5, 65, -8), new BlockPos(5, 65, -7), new BlockPos(6, 65, -7), new BlockPos(7, 65, -7),
-            new BlockPos(7, 65, -6), new BlockPos(7, 65, -5), new BlockPos(8, 65, -5), new BlockPos(8, 65, -4),
-            new BlockPos(8, 65, -3), new BlockPos(9, 65, -3));
+    private final String[] m = {"Sumo", "Space Mine", "White Crystal"};
+    private Block f;
+    private static final int[][] f_p = {
+            {9, 65, -2}, {9, 65, -1}, {9, 65, 0}, {9, 65, 1}, {9, 65, 2}, {9, 65, 3},
+            {8, 65, 3}, {8, 65, 4}, {8, 65, 5}, {7, 65, 5}, {7, 65, 6}, {7, 65, 7},
+            {6, 65, 7}, {5, 65, 7}, {5, 65, 8}, {4, 65, 8}, {3, 65, 8}, {3, 65, 9},
+            {2, 65, 9}, {1, 65, 9}, {0, 65, 9}, {-1, 65, 9}, {-2, 65, 9}, {-3, 65, 9},
+            {-3, 65, 8}, {-4, 65, 8}, {-5, 65, 8}, {-5, 65, 7}, {-6, 65, 7}, {-7, 65, 7},
+            {-7, 65, 6}, {-7, 65, 5}, {-8, 65, 5}, {-8, 65, 4}, {-8, 65, 3}, {-9, 65, 3},
+            {-9, 65, 2}, {-9, 65, 1}, {-9, 65, 0}, {-9, 65, -1}, {-9, 65, -2}, {-9, 65, -3},
+            {-8, 65, -3}, {-8, 65, -4}, {-8, 65, -5}, {-7, 65, -5}, {-7, 65, -6}, {-7, 65, -7},
+            {-6, 65, -7}, {-5, 65, -7}, {-5, 65, -8}, {-4, 65, -8}, {-3, 65, -8}, {-3, 65, -9},
+            {-2, 65, -9}, {-1, 65, -9}, {0, 65, -9}, {1, 65, -9}, {2, 65, -9}, {3, 65, -9},
+            {3, 65, -8}, {4, 65, -8}, {5, 65, -8}, {5, 65, -7}, {6, 65, -7}, {7, 65, -7},
+            {7, 65, -6}, {7, 65, -5}, {8, 65, -5}, {8, 65, -4}, {8, 65, -3}, {9, 65, -3}
+    };
     private final String c1;
     private final String c2;
     private final String c3;
@@ -54,12 +46,12 @@ public class SumoFences extends Module {
 
     public SumoFences() {
         super("Sumo Fences", ModuleCategory.minigames);
-        this.f = Blocks.oak_fence.getDefaultState();
+        this.f = Blocks.fence;
         this.c1 = "Mode: Sumo Duel";
         this.c2 = "Oak fence";
         this.c3 = "Leaves";
         this.c4 = "Glass";
-        this.c5 = "Barrier";
+        this.c5 = "Bedrock";
         this.registerSetting(a = new DescriptionSetting("Fences for Hypixel sumo."));
         this.registerSetting(b = new SliderSetting("Fence height", 4.0D, 1.0D, 16.0D, 1.0D));
         this.registerSetting(c = new SliderSetting("Block type", 1.0D, 1.0D, 4.0D, 1.0D));
@@ -77,11 +69,11 @@ public class SumoFences extends Module {
             this.t = null;
         }
 
-        for (BlockPos p : f_p) {
+        for (int[] p : f_p) {
             for (int i = 0; (double) i < b.getInput(); ++i) {
-                BlockPos p2 = new BlockPos(p.getX(), p.getY() + i, p.getZ());
-                if (mc.theWorld.getBlockState(p2).getBlock() == this.f) {
-                    mc.theWorld.setBlockState(p2, Blocks.air.getDefaultState());
+                int px = p[0], py = p[1] + i, pz = p[2];
+                if (mc.theWorld.getBlock(px, py, pz) == this.f) {
+                    mc.theWorld.setBlock(px, py, pz, Blocks.air);
                 }
             }
         }
@@ -96,11 +88,11 @@ public class SumoFences extends Module {
             if (e.buttonstate && (e.button == 0 || e.button == 1) && Utils.Player.isPlayerInGame() && this.is()) {
                 MovingObjectPosition mop = mc.objectMouseOver;
                 if (mop != null && mop.typeOfHit == MovingObjectType.BLOCK) {
-                    int x = mop.getBlockPos().getX();
-                    int z = mop.getBlockPos().getZ();
+                    int x = mop.blockX;
+                    int z = mop.blockZ;
 
-                    for (BlockPos pos : f_p) {
-                        if (pos.getX() == x && pos.getZ() == z) {
+                    for (int[] pos : f_p) {
+                        if (pos[0] == x && pos[2] == z) {
                             e.setCanceled(true);
                             if (e.button == 0) {
                                 Utils.Player.swing();
@@ -120,11 +112,11 @@ public class SumoFences extends Module {
             public void run() {
                 if (SumoFences.this.is()) {
 
-                    for (BlockPos p : f_p) {
+                    for (int[] p : f_p) {
                         for (int i = 0; (double) i < b.getInput(); ++i) {
-                            BlockPos p2 = new BlockPos(p.getX(), p.getY() + i + ymod, p.getZ());
-                            if (Module.mc.theWorld.getBlockState(p2).getBlock() == Blocks.air) {
-                                Module.mc.theWorld.setBlockState(p2, SumoFences.this.f);
+                            int px = p[0], py = p[1] + i + ymod, pz = p[2];
+                            if (Module.mc.theWorld.getBlock(px, py, pz) == Blocks.air) {
+                                Module.mc.theWorld.setBlock(px, py, pz, SumoFences.this.f);
                             }
                         }
                     }
@@ -140,9 +132,12 @@ public class SumoFences extends Module {
             for (String l : Utils.Client.getPlayersFromScoreboard()) {
                 String s = Utils.Java.str(l);
                 if (s.startsWith("Map:")) {
-                    if (this.m.contains(s.substring(5))) {
-                        ymod = s.contains("Fort Royale") ? 7 : 0;
-                        return true;
+                    String mapName = s.substring(5);
+                    for (String validMap : this.m) {
+                        if (validMap.equals(mapName)) {
+                            ymod = s.contains("Fort Royale") ? 7 : 0;
+                            return true;
+                        }
                     }
                 } else if (s.equals(this.c1)) {
                     return true;
@@ -156,19 +151,19 @@ public class SumoFences extends Module {
     public void guiUpdate() {
         switch ((int) c.getInput()) {
         case 1:
-            this.f = Blocks.oak_fence.getDefaultState();
+            this.f = Blocks.fence;
             d.setDesc(Utils.md + this.c2);
             break;
         case 2:
-            this.f = Blocks.leaves.getDefaultState();
+            this.f = Blocks.leaves;
             d.setDesc(Utils.md + this.c3);
             break;
         case 3:
-            this.f = Blocks.glass.getDefaultState();
+            this.f = Blocks.glass;
             d.setDesc(Utils.md + this.c4);
             break;
         case 4:
-            this.f = Blocks.barrier.getDefaultState();
+            this.f = Blocks.bedrock;
             d.setDesc(Utils.md + this.c5);
         }
 

@@ -7,7 +7,7 @@ import keystrokesmod.client.module.setting.impl.DescriptionSetting;
 import keystrokesmod.client.module.setting.impl.DoubleSliderSetting;
 import keystrokesmod.client.utils.Utils;
 import net.minecraft.client.Minecraft;
-import net.minecraftforge.fml.relauncher.ReflectionHelper;
+import cpw.mods.fml.relauncher.ReflectionHelper;
 
 import java.lang.reflect.Field;
 import java.util.concurrent.ThreadLocalRandom;

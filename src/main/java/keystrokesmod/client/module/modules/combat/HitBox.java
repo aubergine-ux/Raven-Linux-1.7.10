@@ -12,6 +12,7 @@ import keystrokesmod.client.module.setting.impl.SliderSetting;
 import keystrokesmod.client.module.setting.impl.TickSetting;
 import keystrokesmod.client.utils.Utils;
 import net.minecraft.client.renderer.RenderGlobal;
+import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.AxisAlignedBB;
@@ -36,7 +37,7 @@ public class HitBox extends Module {
             if (b.isToggled() && Utils.Player.isPlayerInGame()) {
                 for (Entity en : mc.theWorld.loadedEntityList) {
                     if (en != mc.thePlayer && en instanceof EntityLivingBase && ((EntityLivingBase) en).deathTime == 0
-                            && !(en instanceof EntityArmorStand) && !en.isInvisible()) {
+                            && !en.isInvisible()) {
                         this.rh(en, Color.WHITE);
                     }
                 }
@@ -54,13 +55,13 @@ public class HitBox extends Module {
     private void rh(Entity e, Color c) {
         if (e instanceof EntityLivingBase) {
             double x = (e.lastTickPosX + ((e.posX - e.lastTickPosX) * (double) Utils.Client.getTimer().renderPartialTicks))
-                    - mc.getRenderManager().viewerPosX;
+                    - RenderManager.renderPosX;
             double y = (e.lastTickPosY + ((e.posY - e.lastTickPosY) * (double) Utils.Client.getTimer().renderPartialTicks))
-                    - mc.getRenderManager().viewerPosY;
+                    - RenderManager.renderPosY;
             double z = (e.lastTickPosZ + ((e.posZ - e.lastTickPosZ) * (double) Utils.Client.getTimer().renderPartialTicks))
-                    - mc.getRenderManager().viewerPosZ;
+                    - RenderManager.renderPosZ;
             float ex = (float) ((double) e.getCollisionBorderSize() * a.getInput());
-            AxisAlignedBB bbox = e.getEntityBoundingBox().expand(ex, ex, ex);
+            AxisAlignedBB bbox = e.boundingBox.expand(ex, ex, ex);
             AxisAlignedBB axis = new AxisAlignedBB((bbox.minX - e.posX) + x, (bbox.minY - e.posY) + y,
                     (bbox.minZ - e.posZ) + z, (bbox.maxX - e.posX) + x, (bbox.maxY - e.posY) + y, (bbox.maxZ - e.posZ) + z);
             GL11.glBlendFunc(770, 771);
@@ -70,7 +71,7 @@ public class HitBox extends Module {
             GL11.glDepthMask(false);
             GL11.glLineWidth(2.0F);
             GL11.glColor3d(c.getRed(), c.getGreen(), c.getBlue());
-            RenderGlobal.drawSelectionBoundingBox(axis);
+            RenderGlobal.drawOutlinedBoundingBox(axis, -1);
             GL11.glEnable(3553);
             GL11.glEnable(2929);
             GL11.glDepthMask(true);

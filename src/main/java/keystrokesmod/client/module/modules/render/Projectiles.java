@@ -82,16 +82,14 @@ public class Projectiles extends Module {
             GL11.glEnable(GL11.GL_LINE_SMOOTH);
             GL11.glLineWidth((int) w.getInput());
 
-            RenderManager renderManager = mc.getRenderManager();
-
             // draw trajectory line
             double gravity = 0.05D;
-            Vec3 playerVector = new Vec3(player.posX, player.posY + player.getEyeHeight(), player.posZ);
+            Vec3 playerVector = Vec3.createVectorHelper(player.posX, player.posY + player.getEyeHeight(), player.posZ);
             GL11.glColor4f(0, 1, 0, 0.75F);
             GL11.glBegin(GL11.GL_LINE_STRIP);
             for (int i = 0; i < 1000; i++) {
-                GL11.glVertex3d(arrowPosX - renderManager.viewerPosX, arrowPosY - renderManager.viewerPosY,
-                        arrowPosZ - renderManager.viewerPosZ);
+                GL11.glVertex3d(arrowPosX - RenderManager.renderPosX, arrowPosY - RenderManager.renderPosY,
+                        arrowPosZ - RenderManager.renderPosZ);
 
                 arrowPosX += arrowMotionX * 0.1;
                 arrowPosY += arrowMotionY * 0.1;
@@ -101,15 +99,15 @@ public class Projectiles extends Module {
                 arrowMotionZ *= 0.999D;
                 arrowMotionY -= gravity * 0.1;
 
-                if (mc.theWorld.rayTraceBlocks(playerVector, new Vec3(arrowPosX, arrowPosY, arrowPosZ)) != null)
+                if (mc.theWorld.rayTraceBlocks(playerVector, Vec3.createVectorHelper(arrowPosX, arrowPosY, arrowPosZ)) != null)
                     break;
             }
             GL11.glEnd();
 
             // draw end of trajectory line
-            double renderX = arrowPosX - renderManager.viewerPosX;
-            double renderY = arrowPosY - renderManager.viewerPosY;
-            double renderZ = arrowPosZ - renderManager.viewerPosZ;
+            double renderX = arrowPosX - RenderManager.renderPosX;
+            double renderY = arrowPosY - RenderManager.renderPosY;
+            double renderZ = arrowPosZ - RenderManager.renderPosZ;
 
             GL11.glPushMatrix();
             GL11.glTranslated(renderX - 0.5, renderY - 0.5, renderZ - 0.5);

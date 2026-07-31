@@ -37,8 +37,8 @@ public class Blocks extends Module {
         for (int slot = 0; slot <= 8; slot++) {
             ItemStack itemInSlot = mc.thePlayer.inventory.getStackInSlot(slot);
             if (itemInSlot != null && itemInSlot.getItem() instanceof ItemBlock
-                    && (((ItemBlock) itemInSlot.getItem()).getBlock().isFullBlock()
-                            || ((ItemBlock) itemInSlot.getItem()).getBlock().isFullCube())) {
+                    && (((ItemBlock) itemInSlot.getItem()).getBlock().renderAsNormalBlock()
+                            || ((ItemBlock) itemInSlot.getItem()).getBlock().isNormalCube())) {
                 if (mc.thePlayer.inventory.currentItem != slot) {
                     mc.thePlayer.inventory.currentItem = slot;
                 } else {

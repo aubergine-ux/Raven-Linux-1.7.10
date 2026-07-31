@@ -4,9 +4,9 @@ import keystrokesmod.client.main.Raven;
 import keystrokesmod.client.module.modules.player.Freecam;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent.Phase;
-import net.minecraftforge.fml.common.gameevent.TickEvent.RenderTickEvent;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.TickEvent.Phase;
+import cpw.mods.fml.common.gameevent.TickEvent.RenderTickEvent;
 
 import java.awt.*;
 
@@ -17,7 +17,7 @@ public class DebugInfoRenderer extends net.minecraft.client.gui.Gui {
     public void onRenderTick(RenderTickEvent ev) {
         if (Raven.debugger && ev.phase == Phase.END && Utils.Player.isPlayerInGame()) {
             if (mc.currentScreen == null) {
-                ScaledResolution res = new ScaledResolution(mc);
+                ScaledResolution res = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
                 double bps = Utils.Player.getPlayerBPS(Freecam.en == null ? mc.thePlayer : Freecam.en, 2);
                 int rgb;
                 if (bps < 10.0D) {

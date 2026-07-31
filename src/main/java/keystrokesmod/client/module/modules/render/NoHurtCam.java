@@ -6,7 +6,7 @@ import keystrokesmod.client.module.Module;
 import keystrokesmod.client.utils.Utils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
-import net.minecraftforge.fml.common.gameevent.TickEvent;
+import cpw.mods.fml.common.gameevent.TickEvent;
 
 public class NoHurtCam extends Module {
 

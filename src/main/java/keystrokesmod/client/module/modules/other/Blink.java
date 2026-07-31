@@ -79,7 +79,7 @@ public class Blink extends Module {
             return;
         }
         
-        ScaledResolution sr = new ScaledResolution(mc);
+        ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
         int x = sr.getScaledWidth() / 2;
         int y = sr.getScaledHeight() - 30;
         

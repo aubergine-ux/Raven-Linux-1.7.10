@@ -12,7 +12,6 @@ import keystrokesmod.client.module.modules.client.GuiModule;
 import keystrokesmod.client.module.setting.Setting;
 import keystrokesmod.client.utils.RenderUtils;
 import keystrokesmod.client.utils.font.FontUtil;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.gui.ScaledResolution;
 
 public class ModuleComponent extends Component {
@@ -93,8 +92,8 @@ public class ModuleComponent extends Component {
     public void draw(int mouseX, int mouseY, boolean last) {
 
         //background
-        GlStateManager.pushMatrix();
-        GlStateManager.pushAttrib();
+        GL11.glPushMatrix();
+        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
         if (GuiModule.showGradientEnabled() && mod.isEnabled()) {
             if (last && GuiModule.isRoundedToggled()) vr(x, y, x2, y + aHeight, GuiModule.getEnabledBottomRGB((((y + aHeight))) * 20), GuiModule.getEnabledTopRGB((y) * 20));
             else v(x, y, x2, y + aHeight, GuiModule.getEnabledBottomRGB((((y + aHeight))) * 20), GuiModule.getEnabledTopRGB((y) * 20));
@@ -103,8 +102,8 @@ public class ModuleComponent extends Component {
              if (last && GuiModule.isRoundedToggled()) vr(x, y, x2, y + aHeight, GuiModule.getDisabledBottomRGB(((y + aHeight)) * 20), GuiModule.getDisabledTopRGB((y) * 20));
              else v(x, y, x2, y + aHeight, GuiModule.getDisabledBottomRGB(((y + aHeight)) * 20), GuiModule.getDisabledTopRGB((y) * 20));
         }
-        GlStateManager.popAttrib();
-        GlStateManager.popMatrix();
+        GL11.glPopAttrib();
+        GL11.glPopMatrix();
 
         //name
         int button_rgb = mod.isEnabled() ? GuiModule.getEnabledTextRGB() : this.mod.canBeEnabled() ? GuiModule.getDisabledTextRGB() : 0xFF999999;
@@ -117,7 +116,7 @@ public class ModuleComponent extends Component {
         if(category.getOpenModule() == this) {
             // Apply scissor test to clip settings to the module area
             GL11.glEnable(GL11.GL_SCISSOR_TEST);
-            int scaleFactor = new ScaledResolution(Raven.mc).getScaleFactor();
+            int scaleFactor = new ScaledResolution(Raven.mc, Raven.mc.displayWidth, Raven.mc.displayHeight).getScaleFactor();
             GL11.glScissor(
                 (x * scaleFactor), 
                 (Raven.mc.displayHeight - (y + aHeight + 300) * scaleFactor), // 300 is max visible height

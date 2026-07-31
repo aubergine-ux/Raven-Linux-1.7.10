@@ -13,7 +13,7 @@ import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.ScaledResolution;
-import net.minecraftforge.fml.client.config.GuiButtonExt;
+import cpw.mods.fml.client.config.GuiButtonExt;
 import org.lwjgl.opengl.GL11;
 import net.minecraft.client.gui.Gui;
 
@@ -219,7 +219,7 @@ public class HUDEditor extends Module {
             drawRect(0, 0, this.width, this.height, 0x80000000);
             
             // Draw grid lines
-            ScaledResolution sr = new ScaledResolution(mc);
+            ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
             GL11.glEnable(GL11.GL_BLEND);
             for (int i = 0; i < sr.getScaledWidth(); i += 25) {
                 drawVerticalLine(i, 0, sr.getScaledHeight(), 0x1AFFFFFF);
@@ -291,7 +291,7 @@ public class HUDEditor extends Module {
                 newX = (newX / 5) * 5;
                 newY = (newY / 5) * 5;
                 
-                ScaledResolution sr = new ScaledResolution(mc);
+                ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
                 newX = Math.max(0, Math.min(newX, sr.getScaledWidth() - selectedElement.width));
                 newY = Math.max(0, Math.min(newY, sr.getScaledHeight() - selectedElement.height));
                 

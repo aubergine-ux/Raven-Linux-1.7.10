@@ -109,16 +109,16 @@ public class Targets extends Module {
                 return true;
 
             // 2. Color code prefix check - players with same team color
-            String entityFormatted = bruhentity.getDisplayName().getFormattedText();
-            String playerFormatted = mc.thePlayer.getDisplayName().getFormattedText();
+            String entityFormatted = bruhentity.getDisplayName();
+            String playerFormatted = mc.thePlayer.getDisplayName();
             if (entityFormatted.length() > 1 && playerFormatted.length() > 1) {
                 if (entityFormatted.charAt(1) == playerFormatted.charAt(1))
                     return true;
             }
 
             // 3. Hypixel-style prefix check (same name prefix like "[MVP+]", "TEAM_")
-            String entityName = bruhentity.getDisplayName().getUnformattedText().replace("§", "");
-            String playerName = mc.thePlayer.getDisplayName().getUnformattedText().replace("§", "");
+            String entityName = bruhentity.getDisplayName().replaceAll("§.", "");
+            String playerName = mc.thePlayer.getDisplayName().replaceAll("§.", "");
             if (entityName.length() >= 2 && playerName.length() >= 2) {
                 String entityPrefix = entityName.substring(0, 2);
                 String playerPrefix = playerName.substring(0, 2);
@@ -127,7 +127,7 @@ public class Targets extends Module {
             }
 
             if (Raven.debugger) {
-                Utils.Player.sendMessageToSelf("Not teammates with " + bruhentity.getName());
+                Utils.Player.sendMessageToSelf("Not teammates with " + bruhentity.getCommandSenderName());
             }
         } catch (Exception e) {
             if (Raven.debugger)

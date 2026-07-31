@@ -7,8 +7,7 @@ import keystrokesmod.client.module.setting.impl.SliderSetting;
 import keystrokesmod.client.utils.Utils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.WorldRenderer;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import org.lwjgl.opengl.GL11;
 
@@ -28,9 +27,9 @@ public class Leafhat extends Module {
         if (!Utils.Player.isPlayerInGame() || mc.thePlayer == null || mc.thePlayer.isDead) return;
         if (mc.thePlayer.isPlayerSleeping()) return;
 
-        double x = mc.thePlayer.lastTickPosX + (mc.thePlayer.posX - mc.thePlayer.lastTickPosX) * Utils.Client.getTimer().renderPartialTicks - mc.getRenderManager().viewerPosX;
-        double y = mc.thePlayer.lastTickPosY + (mc.thePlayer.posY - mc.thePlayer.lastTickPosY) * Utils.Client.getTimer().renderPartialTicks - mc.getRenderManager().viewerPosY;
-        double z = mc.thePlayer.lastTickPosZ + (mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ) * Utils.Client.getTimer().renderPartialTicks - mc.getRenderManager().viewerPosZ;
+        double x = mc.thePlayer.lastTickPosX + (mc.thePlayer.posX - mc.thePlayer.lastTickPosX) * Utils.Client.getTimer().renderPartialTicks - RenderManager.renderPosX;
+        double y = mc.thePlayer.lastTickPosY + (mc.thePlayer.posY - mc.thePlayer.lastTickPosY) * Utils.Client.getTimer().renderPartialTicks - RenderManager.renderPosY;
+        double z = mc.thePlayer.lastTickPosZ + (mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ) * Utils.Client.getTimer().renderPartialTicks - RenderManager.renderPosZ;
 
         float s = (float) (double) size.getInput();
 
@@ -50,25 +49,27 @@ public class Leafhat extends Module {
         GL11.glColor4f(0.2f, 0.8f, 0.2f, 0.9f);
 
         // Draw a simple leaf shape using quads
-        Tessellator tessellator = Tessellator.getInstance();
-        WorldRenderer wr = tessellator.getWorldRenderer();
+        Tessellator tessellator = Tessellator.instance;
 
         // leaf disc
-        wr.begin(GL11.GL_TRIANGLE_FAN, DefaultVertexFormats.POSITION_COLOR);
-        wr.pos(0.0, 0.0, 0.0).color(0.2f, 0.8f, 0.2f, 0.9f).endVertex();
+        tessellator.startDrawing(GL11.GL_TRIANGLE_FAN);
+        tessellator.setColorRGBA_F(0.2f, 0.8f, 0.2f, 0.9f);
+        tessellator.addVertex(0.0, 0.0, 0.0);
         int segments = 12;
         for (int i = 0; i <= segments; i++) {
             double angle = i * 2.0 * Math.PI / segments;
-            wr.pos(Math.cos(angle) * 0.3, Math.sin(angle) * 0.02, Math.sin(angle) * 0.3).color(0.1f, 0.7f, 0.1f, 0.8f).endVertex();
+            tessellator.setColorRGBA_F(0.1f, 0.7f, 0.1f, 0.8f);
+            tessellator.addVertex(Math.cos(angle) * 0.3, Math.sin(angle) * 0.02, Math.sin(angle) * 0.3);
         }
         tessellator.draw();
 
         // stem
-        wr.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
-        wr.pos(-0.02, 0.0, -0.02).color(0.3f, 0.5f, 0.1f, 1.0f).endVertex();
-        wr.pos(0.02, 0.0, -0.02).color(0.3f, 0.5f, 0.1f, 1.0f).endVertex();
-        wr.pos(0.02, -0.3, -0.02).color(0.3f, 0.5f, 0.1f, 1.0f).endVertex();
-        wr.pos(-0.02, -0.3, -0.02).color(0.3f, 0.5f, 0.1f, 1.0f).endVertex();
+        tessellator.startDrawingQuads();
+        tessellator.setColorRGBA_F(0.3f, 0.5f, 0.1f, 1.0f);
+        tessellator.addVertex(-0.02, 0.0, -0.02);
+        tessellator.addVertex(0.02, 0.0, -0.02);
+        tessellator.addVertex(0.02, -0.3, -0.02);
+        tessellator.addVertex(-0.02, -0.3, -0.02);
         tessellator.draw();
 
         GL11.glEnable(GL11.GL_TEXTURE_2D);

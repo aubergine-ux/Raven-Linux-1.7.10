@@ -18,11 +18,9 @@ import keystrokesmod.client.utils.Utils;
 import keystrokesmod.client.module.modules.world.AntiBot;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockLiquid;
-import net.minecraft.client.network.NetworkPlayerInfo;
 import net.minecraft.entity.Entity;
 import net.minecraft.init.Blocks;
-import net.minecraft.util.BlockPos;
-import net.minecraftforge.fml.common.gameevent.TickEvent;
+import net.minecraft.util.MovingObjectPosition;
 
 public class AimAssist extends Module {
     public static SliderSetting speedYaw, complimentYaw, speedPitch, complimentPitch;
@@ -65,9 +63,8 @@ public class AimAssist extends Module {
                 return;
 
             if (breakBlocks.isToggled() && (mc.objectMouseOver != null)) {
-                BlockPos p = mc.objectMouseOver.getBlockPos();
-                if (p != null) {
-                    Block bl = mc.theWorld.getBlockState(p).getBlock();
+                if (mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+                    Block bl = mc.theWorld.getBlock(mc.objectMouseOver.blockX, mc.objectMouseOver.blockY, mc.objectMouseOver.blockZ);
                     if ((bl != Blocks.air) && !(bl instanceof BlockLiquid) && (bl != null))
                         return;
                 }
@@ -127,7 +124,7 @@ public class AimAssist extends Module {
     public static boolean addFriend(String name) {
         boolean found = false;
         for (Entity entity : mc.theWorld.getLoadedEntityList())
-            if (entity.getName().equalsIgnoreCase(name) || entity.getCustomNameTag().equalsIgnoreCase(name))
+            if (entity.getCommandSenderName().equalsIgnoreCase(name) || entity.getCustomNameTag().equalsIgnoreCase(name))
                 if (!Targets.isAFriend(entity)) {
                     addFriend(entity);
                     found = true;
@@ -139,9 +136,8 @@ public class AimAssist extends Module {
     public static boolean removeFriend(String name) {
         boolean removed = false;
         boolean found = false;
-        for (NetworkPlayerInfo networkPlayerInfo : new ArrayList<>(mc.getNetHandler().getPlayerInfoMap())) {
-            Entity entity = mc.theWorld.getPlayerEntityByName(networkPlayerInfo.getDisplayName().getUnformattedText());
-            if (entity.getName().equalsIgnoreCase(name) || entity.getCustomNameTag().equalsIgnoreCase(name)) {
+        for (Entity entity : new ArrayList<>(mc.theWorld.loadedEntityList)) {
+            if (entity.getCommandSenderName().equalsIgnoreCase(name) || entity.getCustomNameTag().equalsIgnoreCase(name)) {
                 removed = removeFriend(entity);
                 found = true;
             }

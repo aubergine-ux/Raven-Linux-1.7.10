@@ -60,7 +60,7 @@ public class DuelsStats extends Module {
         for (ScorePlayerTeam team : Minecraft.getMinecraft().theWorld.getScoreboard().getTeams()) {
             for (String playerName : team.getMembershipCollection()) {
                 if (!queue.contains(playerName) && team.getColorPrefix().equals("§7§k")
-                        && !playerName.equalsIgnoreCase(Minecraft.getMinecraft().thePlayer.getDisplayNameString())) {
+                        && !playerName.equalsIgnoreCase(Minecraft.getMinecraft().thePlayer.getCommandSenderName())) {
                     this.queue.add(playerName);
                     Raven.getExecutor().execute(() -> {
                         String id = getPlayerUUID(playerName);

@@ -4,8 +4,9 @@ import keystrokesmod.client.main.Raven;
 import keystrokesmod.client.module.modules.world.AntiBot;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.client.event.MouseEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,11 +28,13 @@ public class MouseManager {
                         return;
                     }
 
+                    String name = en.getCommandSenderName();
+                    String displayName = (en instanceof EntityPlayer) ? ((EntityPlayer) en).getDisplayName() : en.getCommandSenderName();
                     Utils.Player.sendMessageToSelf("&7&m-------------------------");
-                    Utils.Player.sendMessageToSelf("n: " + en.getName());
-                    Utils.Player.sendMessageToSelf("rn: " + en.getName().replace("§", "%"));
-                    Utils.Player.sendMessageToSelf("d: " + en.getDisplayName().getUnformattedText());
-                    Utils.Player.sendMessageToSelf("rd: " + en.getDisplayName().getUnformattedText().replace("§", "%"));
+                    Utils.Player.sendMessageToSelf("n: " + name);
+                    Utils.Player.sendMessageToSelf("rn: " + name.replace("§", "%"));
+                    Utils.Player.sendMessageToSelf("d: " + displayName);
+                    Utils.Player.sendMessageToSelf("rd: " + displayName.replace("§", "%"));
                     Utils.Player.sendMessageToSelf("b?: " + AntiBot.bot(en));
                 }
             } else if (mouse.button == 1) {

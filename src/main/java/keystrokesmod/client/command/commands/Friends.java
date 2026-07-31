@@ -45,7 +45,7 @@ public class Friends extends Command {
         } else {
             print("Your friends are:");
             for (Entity entity : AimAssist.getFriends()) {
-                print(entity.getName());
+                print(entity.getCommandSenderName());
             }
         }
     }

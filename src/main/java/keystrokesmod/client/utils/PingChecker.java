@@ -2,7 +2,7 @@ package keystrokesmod.client.utils;
 
 import keystrokesmod.client.clickgui.raven.Terminal;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class PingChecker {
     private static boolean e;

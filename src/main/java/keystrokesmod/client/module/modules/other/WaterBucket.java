@@ -5,7 +5,6 @@ import keystrokesmod.client.event.impl.TickEvent;
 import keystrokesmod.client.module.Module;
 import keystrokesmod.client.module.setting.impl.DescriptionSetting;
 import keystrokesmod.client.module.setting.impl.SliderSetting;
-import keystrokesmod.client.module.setting.impl.TickSetting;
 import keystrokesmod.client.utils.DimensionHelper;
 import keystrokesmod.client.utils.Utils;
 import net.minecraft.block.Block;
@@ -13,8 +12,7 @@ import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.MathHelper;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.MovingObjectPosition.MovingObjectType;
 
@@ -57,12 +55,16 @@ public class WaterBucket extends Module {
     private boolean inPosition() {
         if (mc.thePlayer.motionY < -0.6D && !mc.thePlayer.onGround && !mc.thePlayer.capabilities.isFlying
                 && !mc.thePlayer.capabilities.isCreativeMode && !this.handling && mc.thePlayer.fallDistance > distance.getInput()) {
-            BlockPos playerPos = mc.thePlayer.getPosition();
+            int playerX = MathHelper.floor_double(mc.thePlayer.posX);
+            int playerY = MathHelper.floor_double(mc.thePlayer.posY);
+            int playerZ = MathHelper.floor_double(mc.thePlayer.posZ);
 
             for (int i = 1; i < 3; ++i) {
-                BlockPos blockPos = playerPos.down(i);
-                Block block = mc.theWorld.getBlockState(blockPos).getBlock();
-                if (block.isBlockSolid(mc.theWorld, blockPos, EnumFacing.UP)) {
+                int bx = playerX;
+                int by = playerY - i;
+                int bz = playerZ;
+                Block block = mc.theWorld.getBlock(bx, by, bz);
+                if (block.getMaterial().isSolid()) {
                     return false;
                 }
             }
@@ -92,7 +94,7 @@ public class WaterBucket extends Module {
         ItemStack heldItem = mc.thePlayer.getHeldItem();
         if (this.containsItem(heldItem, Items.water_bucket) && mc.thePlayer.rotationPitch >= 45.0F) {
             MovingObjectPosition object = mc.objectMouseOver;
-            if (object != null && object.typeOfHit == MovingObjectType.BLOCK && object.sideHit == EnumFacing.UP) {
+            if (object != null && object.typeOfHit == MovingObjectType.BLOCK && object.sideHit == 1) {
                 // Auto-click the water bucket
                 mc.playerController.sendUseItem(mc.thePlayer, mc.theWorld, heldItem);
             }

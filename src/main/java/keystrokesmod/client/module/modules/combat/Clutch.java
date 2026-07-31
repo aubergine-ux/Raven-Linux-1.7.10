@@ -7,8 +7,6 @@ import keystrokesmod.client.module.Module;
 import keystrokesmod.client.module.setting.impl.TickSetting;
 import keystrokesmod.client.utils.Utils;
 import net.minecraft.client.settings.KeyBinding;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.EnumFacing;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.event.entity.living.LivingEvent;
 
@@ -88,32 +86,34 @@ public class Clutch extends Module {
         int prevSlot = mc.thePlayer.inventory.currentItem;
         mc.thePlayer.inventory.currentItem = slot;
 
-        BlockPos under = new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY - 1, mc.thePlayer.posZ);
+        int ux = (int) Math.floor(mc.thePlayer.posX);
+        int uy = (int) Math.floor(mc.thePlayer.posY) - 1;
+        int uz = (int) Math.floor(mc.thePlayer.posZ);
 
-        if (mc.theWorld.isAirBlock(under)) {
-            BlockPos neighbor = null;
-            EnumFacing side = null;
+        if (mc.theWorld.isAirBlock(ux, uy, uz)) {
+            int nx = ux, ny = uy, nz = uz;
+            int side = -1;
 
-            if (!mc.theWorld.isAirBlock(under.down())) {
-                neighbor = under.down();
-                side = EnumFacing.UP;
-            } else if (!mc.theWorld.isAirBlock(under.north())) {
-                neighbor = under.north();
-                side = EnumFacing.SOUTH;
-            } else if (!mc.theWorld.isAirBlock(under.south())) {
-                neighbor = under.south();
-                side = EnumFacing.NORTH;
-            } else if (!mc.theWorld.isAirBlock(under.east())) {
-                neighbor = under.east();
-                side = EnumFacing.WEST;
-            } else if (!mc.theWorld.isAirBlock(under.west())) {
-                neighbor = under.west();
-                side = EnumFacing.EAST;
+            if (!mc.theWorld.isAirBlock(ux, uy - 1, uz)) {
+                ny = uy - 1;
+                side = 1; // UP
+            } else if (!mc.theWorld.isAirBlock(ux, uy, uz - 1)) {
+                nz = uz - 1;
+                side = 3; // SOUTH
+            } else if (!mc.theWorld.isAirBlock(ux, uy, uz + 1)) {
+                nz = uz + 1;
+                side = 2; // NORTH
+            } else if (!mc.theWorld.isAirBlock(ux + 1, uy, uz)) {
+                nx = ux + 1;
+                side = 4; // WEST
+            } else if (!mc.theWorld.isAirBlock(ux - 1, uy, uz)) {
+                nx = ux - 1;
+                side = 5; // EAST
             }
 
-            if (neighbor != null) {
-                Vec3 hitVec = new Vec3(neighbor.getX() + 0.5, neighbor.getY() + 0.5, neighbor.getZ() + 0.5);
-                mc.playerController.onPlayerRightClick(mc.thePlayer, mc.theWorld, mc.thePlayer.getHeldItem(), neighbor, side, hitVec);
+            if (side != -1) {
+                Vec3 hitVec = Vec3.createVectorHelper(nx + 0.5, ny + 0.5, nz + 0.5);
+                mc.playerController.onPlayerRightClick(mc.thePlayer, mc.theWorld, mc.thePlayer.getHeldItem(), nx, ny, nz, side, hitVec);
                 mc.thePlayer.swingItem();
                 lastPlaceTime = System.currentTimeMillis();
             }

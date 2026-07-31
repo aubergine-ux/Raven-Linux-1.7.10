@@ -47,7 +47,8 @@ public class TargetHUD extends Module {
 
     public TargetHUD() {
         super("Target HUD", ModuleCategory.render);
-        sr = new ScaledResolution(Minecraft.getMinecraft());
+        Minecraft mc = Minecraft.getMinecraft();
+        sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
         height = sr.getScaledHeight();
         width = sr.getScaledWidth();
         fr = mc.fontRendererObj;
@@ -178,7 +179,7 @@ public class TargetHUD extends Module {
         mc.getTextureManager().bindTexture(target.getLocationSkin());
         Gui.drawScaledCustomSizeModalRect(x + 5, y + 5, 8.0F, 8.0F, 8, 8, 30, 30, 64.0F, 64.0F);
 
-        String targetName = target.getName();
+        String targetName = target.getCommandSenderName();
         int nameColor = (int) (alpha * 0xFF) << 24 | 0xFFFFFF;
         FontUtil.normal.drawSmoothString(StringUtils.stripControlCodes(targetName), x + 40, y + 8, nameColor);
 
@@ -264,7 +265,7 @@ public class TargetHUD extends Module {
             } catch (Exception e) {}
         }
 
-        String targetName = target.getName();
+        String targetName = target.getCommandSenderName();
         int nameColor = (int) (alpha * 0xFF) << 24 | 0xFFFFFF;
         FontUtil.normal.drawSmoothString(StringUtils.stripControlCodes(targetName), x + 40, y + 8, nameColor);
 
@@ -343,7 +344,7 @@ public class TargetHUD extends Module {
         }
         RenderUtils.drawBorderedRoundedRect(x, y, x + hudWidth, y + hudHeight, 8, 2, borderColor, 0x00000000);
 
-        String targetName = target.getName();
+        String targetName = target.getCommandSenderName();
         int nameColor = (int) (alpha * 0xFF) << 24 | 0xFFFFFF;
         FontUtil.normal.drawSmoothString(StringUtils.stripControlCodes(targetName), x + 5, y + 5, nameColor);
 

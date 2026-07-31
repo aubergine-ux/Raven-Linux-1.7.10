@@ -12,9 +12,6 @@ import net.minecraft.item.ItemEnderPearl;
 import net.minecraft.item.ItemStack;
 import org.lwjgl.input.Mouse;
 
-import java.awt.*;
-import java.awt.event.InputEvent;
-
 import static keystrokesmod.client.module.modules.other.MiddleClick.Action.*;
 
 public class MiddleClick extends Module {
@@ -22,7 +19,6 @@ public class MiddleClick extends Module {
     public static TickSetting showHelp;
     int prevSlot;
     public static boolean a;
-    private Robot bot;
     private boolean hasClicked;
     private int pearlEvent;
 
@@ -33,11 +29,6 @@ public class MiddleClick extends Module {
     }
 
     public void onEnable() {
-        try {
-            this.bot = new Robot();
-        } catch (AWTException var2) {
-            this.disable();
-        }
         hasClicked = false;
         pearlEvent = 4;
     }
@@ -60,8 +51,8 @@ public class MiddleClick extends Module {
                     if (itemInSlot != null && itemInSlot.getItem() instanceof ItemEnderPearl) {
                         prevSlot = mc.thePlayer.inventory.currentItem;
                         mc.thePlayer.inventory.currentItem = slot;
-                        this.bot.mousePress(InputEvent.BUTTON3_MASK);
-                        this.bot.mouseRelease(InputEvent.BUTTON3_MASK);
+                        Utils.Client.setMouseButtonState(2, true);
+                        Utils.Client.setMouseButtonState(2, false);
                         pearlEvent = 0;
                         hasClicked = true;
                         return;
@@ -95,9 +86,9 @@ public class MiddleClick extends Module {
             Utils.Player.sendMessageToSelf("Please aim at a player/entity when removing them.");
         } else {
             if (AimAssist.removeFriend(player)) {
-                Utils.Player.sendMessageToSelf("Successfully removed " + player.getName() + " from friends list!");
+                Utils.Player.sendMessageToSelf("Successfully removed " + player.getCommandSenderName() + " from friends list!");
             } else {
-                Utils.Player.sendMessageToSelf(player.getName() + " was not found in the friends list!");
+                Utils.Player.sendMessageToSelf(player.getCommandSenderName() + " was not found in the friends list!");
             }
         }
     }
@@ -108,7 +99,7 @@ public class MiddleClick extends Module {
             Utils.Player.sendMessageToSelf("Please aim at a player/entity when adding them.");
         } else {
             AimAssist.addFriend(player);
-            Utils.Player.sendMessageToSelf("Successfully added " + player.getName() + " to friends list.");
+            Utils.Player.sendMessageToSelf("Successfully added " + player.getCommandSenderName() + " to friends list.");
         }
     }
 
