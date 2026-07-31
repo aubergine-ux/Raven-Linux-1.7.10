@@ -8,10 +8,10 @@
         "MixinEntity2",
         "MixinEntityPlayer",
         "MixinEntityPlayerSP",
+        "MixinEntityClientPlayerMP",
         "MixinEntityRenderer",
         "MixinFontRenderer",
         "MixinGuiMainMenu",
-        "MixinGuiUtilRenderComponents",
         "MixinMinecraft",
         "MixinNetworkManager",
         "MixinEntityLivingBase"
