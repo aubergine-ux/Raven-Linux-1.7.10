@@ -2,8 +2,8 @@ package keystrokesmod.keystroke;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent.RenderTickEvent;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.TickEvent.RenderTickEvent;
 
 import java.awt.*;
 import java.io.IOException;
@@ -45,7 +45,7 @@ public class KeyStrokeRenderer {
             int y = KeyStroke.y;
             int g = this.getColor(KeyStroke.currentColorNumber);
             boolean h = KeyStroke.showMouseButtons;
-            ScaledResolution res = new ScaledResolution(this.mc);
+            ScaledResolution res = new ScaledResolution(this.mc, this.mc.displayWidth, this.mc.displayHeight);
             int width = 74;
             int height = h ? 74 : 50;
             if (x < 0) {

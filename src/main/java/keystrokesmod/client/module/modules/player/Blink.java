@@ -25,7 +25,7 @@ import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
 
 public class Blink extends Module {
 
-    private final ConcurrentLinkedQueue<Packet<?>> packets = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<Packet> packets = new ConcurrentLinkedQueue<>();
     
     public static DescriptionSetting desc;
     public static ComboSetting mode;
@@ -60,7 +60,7 @@ public class Blink extends Module {
     public void packetEvent(PacketEvent event) {
         if (!Utils.Player.isPlayerInGame()) return;
         
-        Packet<?> packet = event.getPacket();
+        Packet packet = event.getPacket();
         
         if (!shouldBufferPacket(packet)) return;
         
@@ -94,7 +94,7 @@ public class Blink extends Module {
     public void onRender2DEvent(Render2DEvent event) {
         if (!Utils.Player.isPlayerInGame() || !showInfo.isToggled()) return;
         
-        ScaledResolution sr = new ScaledResolution(mc);
+        ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
         int x = 5;
         int y = sr.getScaledHeight() - 30;
         
@@ -113,7 +113,7 @@ public class Blink extends Module {
         }
     }
     
-    private boolean shouldBufferPacket(Packet<?> packet) {
+    private boolean shouldBufferPacket(Packet packet) {
         BlinkMode currentMode = (BlinkMode) mode.getMode();
         
         switch (currentMode) {
@@ -132,7 +132,7 @@ public class Blink extends Module {
         }
     }
     
-    private boolean isImportantPacket(Packet<?> packet) {
+    private boolean isImportantPacket(Packet packet) {
         // Smart mode - buffer important packets that affect gameplay
         // Always buffer movement packets in smart mode
         if (packet instanceof C03PacketPlayer) {
@@ -150,7 +150,7 @@ public class Blink extends Module {
         
         // Release all packets
         while (!packets.isEmpty()) {
-            Packet<?> packet = packets.poll();
+            Packet packet = packets.poll();
             if (packet != null) {
                 mc.getNetHandler().addToSendQueue(packet);
             }

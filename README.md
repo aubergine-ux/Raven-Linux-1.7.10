@@ -1,7 +1,15 @@
-# RavenB++
+# RavenB++ (1.7.10 Linux/Wayland Port)
 
-Raven b++ is a pvp and utility mod for minecraft 1.8.x. It supports Forge and Feather adding quality of life improvements, bug fixes, and so much more.<br>
+Raven b++ is a pvp and utility mod for minecraft. This is a 1:1 port of the original 1.8.9 version to **Minecraft 1.7.10** with full **Linux (Arch/Wayland)** support.<br>
 Not related to Raven B3/B4 in any way.
+
+## Changes from Original
+
+- **Minecraft 1.7.10** compatible (Forge 10.13.4.1614)
+- **Linux/Wayland** compatible: replaced `java.awt.Robot` with LWJGL input, added `xdg-open` and `wl-copy` fallbacks
+- All rendering converted from GlStateManager to direct GL11 calls
+- BlockPos references replaced with int coordinates for 1.7.10 API
+- Tessellator/WorldRenderer API updated for 1.7.10
 
 ## Community
 
@@ -12,35 +20,21 @@ Official Discord of RavenB++:
 
 # Installation & Download
 
-* Download the latest version [here](https://github.com/K-ov/Raven/releases/download/v1.0.0/1.8.9.BetterKeystrokes.V-1.2.jar)
-* Download Essential [here](https://cdn.essential.gg/mods/60ecf53d6b26c76a26d49e5b/62c746c961a27f691be98531/Essential-forge_1-8-9.jar)
-* Download Forge for Minecraft 1.8.9 [here](https://maven.minecraftforge.net/net/minecraftforge/forge/1.8.9-11.15.1.2318-1.8.9/forge-1.8.9-11.15.1.2318-1.8.9-installer.jar) and run the installer.
-* If you cannot find the Forge version, fully close the Minecraft Launcher using Task Manager and reopen it. If you still need help, join the Discord server above.
+* Download Forge for Minecraft 1.7.10 [here](https://maven.minecraftforge.net/net/minecraftforge/forge/1.7.10-10.13.4.1614-1.7.10/forge-1.7.10-10.13.4.1614-1.7.10-installer.jar) and run the installer.
 * After launching the Forge profile once:
+  * On Linux: go to `~/.minecraft/mods`
   * On Windows: go to `%appdata%\.minecraft\mods`
   * On macOS: go to `~/Library/Application Support/minecraft/mods/`
-* Put both:
-  * `1.8.9.BetterKeystrokes.V-1.2.jar`
-  * `Essential-forge_1-8-9.jar`
-  into the `mods` folder.
-* Launch Minecraft using the Forge profile and you're good to go.
-* If you still need help, you can join the Discord server.
-
-Alternatively, this [YouTube tutorial](https://www.youtube.com/watch?v=CuV4GfLDubk) explains the installation process step-by-step.
-
----
-
-## Download
-
-[Latest](https://github.com/K-ov/Raven/releases/download/v1.0.0/1.8.9.BetterKeystrokes.V-1.2.jar)
+* Put the built jar into the `mods` folder.
+* Launch Minecraft using the Forge 1.7.10 profile and you're good to go.
 
 ---
 
 # Building Ravenb++ Yourself
 
-1. [Download](https://gradle.org/next-steps/?version=2.7&format=bin) and [install](https://docs.gradle.org/current/userguide/installation.html) Gradle.
+1. Make sure you have **Java 8** installed and set as `JAVA_HOME`.
 2. Clone this repository to your machine.
-3. Open a terminal or command prompt in the project folder.
+3. Open a terminal in the project folder.
 4. Run:
 
 ```bash

@@ -26,7 +26,7 @@ public class NotificationManager {
             activeNotifications.add(n);
         }
 
-        ScaledResolution sr = new ScaledResolution(Minecraft.getMinecraft());
+        ScaledResolution sr = new ScaledResolution(Minecraft.getMinecraft(), Minecraft.getMinecraft().displayWidth, Minecraft.getMinecraft().displayHeight);
         int baseY = sr.getScaledHeight() - 15;
         int height = 30;
 

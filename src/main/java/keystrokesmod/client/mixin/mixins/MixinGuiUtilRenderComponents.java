@@ -1,5 +1,10 @@
 package keystrokesmod.client.mixin.mixins;
 
+// GuiUtilRenderComponents does not exist in 1.7.10 (added in 1.8).
+// This mixin has been disabled. Remove "MixinGuiUtilRenderComponents" from mixins.keystrokesmod.json.
+// The NameHider functionality that was here needs an alternative target class in 1.7.10.
+
+/*
 import keystrokesmod.client.main.Raven;
 import keystrokesmod.client.module.Module;
 import keystrokesmod.client.module.modules.other.NameHider;
@@ -23,3 +28,4 @@ public class MixinGuiUtilRenderComponents {
     }
 
 }
+*/

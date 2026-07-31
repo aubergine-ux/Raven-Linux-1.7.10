@@ -11,7 +11,7 @@ import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemEgg;
 import net.minecraft.item.ItemSnowball;
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.fml.relauncher.ReflectionHelper;
+import cpw.mods.fml.relauncher.ReflectionHelper;
 
 import java.lang.reflect.Field;
 

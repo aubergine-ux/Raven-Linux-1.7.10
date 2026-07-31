@@ -74,7 +74,7 @@ public class BedwarsOverlay extends Module {
             return;
         }
 
-        ScaledResolution sr = new ScaledResolution(Minecraft.getMinecraft());
+        ScaledResolution sr = new ScaledResolution(Minecraft.getMinecraft(), Minecraft.getMinecraft().displayWidth, Minecraft.getMinecraft().displayHeight);
         FontRenderer fr = Minecraft.getMinecraft().fontRendererObj;
         linesDrawn = 0;
         drawMain(sr, fr);

@@ -18,6 +18,7 @@ import keystrokesmod.client.module.setting.impl.RGBSetting;
 import keystrokesmod.client.module.setting.impl.SliderSetting;
 import keystrokesmod.client.module.setting.impl.TickSetting;
 import keystrokesmod.client.utils.Utils;
+import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
@@ -32,7 +33,7 @@ import net.minecraft.util.MathHelper;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 
 public class EntityESP extends Module {
-    
+
     public static DescriptionSetting desc;
     public static RGBSetting playerColor, mobColor, animalColor, itemColor, projectileColor;
     public static ComboSetting mode;
@@ -40,9 +41,9 @@ public class EntityESP extends Module {
     public static TickSetting outline, filled, glow, showHealth, showDistance;
     public static TickSetting onlyHostile, onlyPassive, filterInvisible, showNames;
     public static SliderSetting renderDistance, lineWidth, opacity, fadeDistance;
-    
+
     private int playerRgb, mobRgb, animalRgb, itemRgb, projectileRgb;
-    
+
     public enum ESPMode {
         BOX,           // Box around entity
         OUTLINE,       // Outline only
@@ -56,7 +57,7 @@ public class EntityESP extends Module {
     public EntityESP() {
         super("EntityESP", ModuleCategory.render);
         this.registerSetting(desc = new DescriptionSetting("See all entities through walls"));
-        
+
         // Colors
         this.registerSetting(playerColor = new RGBSetting("Player Color", 255, 0, 0));
         this.registerSetting(mobColor = new RGBSetting("Mob Color", 255, 255, 0));
@@ -65,14 +66,14 @@ public class EntityESP extends Module {
         this.registerSetting(projectileColor = new RGBSetting("Projectile Color", 255, 0, 255));
         this.registerSetting(rainbow = new TickSetting("Rainbow", false));
         this.registerSetting(mode = new ComboSetting("Mode", ESPMode.BOX));
-        
+
         // Entity types
         this.registerSetting(showPlayers = new TickSetting("Show Players", true));
         this.registerSetting(showMobs = new TickSetting("Show Mobs", true));
         this.registerSetting(showAnimals = new TickSetting("Show Animals", false));
         this.registerSetting(showItems = new TickSetting("Show Items", false));
         this.registerSetting(showProjectiles = new TickSetting("Show Projectiles", false));
-        
+
         // Filters
         this.registerSetting(onlyHostile = new TickSetting("Only Hostile", false));
         this.registerSetting(onlyPassive = new TickSetting("Only Passive", false));
@@ -80,7 +81,7 @@ public class EntityESP extends Module {
         this.registerSetting(showNames = new TickSetting("Show Names", true));
         this.registerSetting(showHealth = new TickSetting("Show Health", true));
         this.registerSetting(showDistance = new TickSetting("Show Distance", true));
-        
+
         // Visual settings
         this.registerSetting(outline = new TickSetting("Outline", true));
         this.registerSetting(filled = new TickSetting("Filled", false));
@@ -110,32 +111,32 @@ public class EntityESP extends Module {
 
     private void renderEntities() {
         Iterator<Entity> iterator = mc.theWorld.loadedEntityList.iterator();
-        
+
         while (iterator.hasNext()) {
             Entity entity = iterator.next();
-            
+
             if (!shouldRenderEntity(entity)) continue;
-            
+
             double distance = mc.thePlayer.getDistanceToEntity(entity);
             if (distance > renderDistance.getInput()) continue;
-            
+
             int color = getEntityColor(entity);
             float alpha = calculateAlpha(distance);
             if (alpha <= 0) continue;
-            
+
             renderEntityESP(entity, color, alpha, distance);
         }
     }
 
     private boolean shouldRenderEntity(Entity entity) {
         if (entity == mc.thePlayer) return false;
-        
+
         // Filter invisible entities
         if (filterInvisible.isToggled() && entity.isInvisible()) return false;
-        
+
         // Filter bots
         if (entity instanceof EntityPlayer && AntiBot.bot((EntityPlayer) entity)) return false;
-        
+
         // Check entity type filters
         if (entity instanceof EntityPlayer && !showPlayers.isToggled()) return false;
         if (entity instanceof EntityMob && !showMobs.isToggled()) return false;
@@ -144,11 +145,11 @@ public class EntityESP extends Module {
         if (entity instanceof EntityArrow || entity instanceof EntityFireball) {
             if (!showProjectiles.isToggled()) return false;
         }
-        
+
         // Hostile/Passive filters
         if (onlyHostile.isToggled() && !(entity instanceof EntityMob)) return false;
         if (onlyPassive.isToggled() && !(entity instanceof EntityAnimal)) return false;
-        
+
         return true;
     }
 
@@ -156,7 +157,7 @@ public class EntityESP extends Module {
         if (rainbow.isToggled()) {
             return 0; // Rainbow color
         }
-        
+
         if (entity instanceof EntityPlayer) {
             return playerRgb;
         } else if (entity instanceof EntityMob) {
@@ -168,13 +169,13 @@ public class EntityESP extends Module {
         } else if (entity instanceof EntityArrow || entity instanceof EntityFireball) {
             return projectileRgb;
         }
-        
+
         return 0xFFFFFF; // Default white
     }
 
     private void renderEntityESP(Entity entity, int color, float alpha, double distance) {
         ESPMode currentMode = (ESPMode) mode.getMode();
-        
+
         switch (currentMode) {
             case BOX:
                 renderBoxESP(entity, color, alpha);
@@ -198,12 +199,12 @@ public class EntityESP extends Module {
                 renderComboESP(entity, color, alpha);
                 break;
         }
-        
+
         // Render additional info
         if (showNames.isToggled()) {
             renderEntityName(entity, color, alpha, distance);
         }
-        
+
         if (showHealth.isToggled() && entity instanceof EntityLivingBase) {
             renderEntityHealth((EntityLivingBase) entity, color, alpha, distance);
         }
@@ -211,134 +212,134 @@ public class EntityESP extends Module {
 
     private void renderBoxESP(Entity entity, int color, float alpha) {
         float[] rgb = getRGB(color);
-        
+
         // Get entity bounding box
-        AxisAlignedBB bb = entity.getEntityBoundingBox();
-        
+        AxisAlignedBB bb = entity.boundingBox;
+
         // Move to player position
-        double x = bb.minX - mc.getRenderManager().viewerPosX;
-        double y = bb.minY - mc.getRenderManager().viewerPosY;
-        double z = bb.minZ - mc.getRenderManager().viewerPosZ;
-        
-        AxisAlignedBB bb2 = new AxisAlignedBB(x, y, z, 
-                                           x + (bb.maxX - bb.minX), 
-                                           y + (bb.maxY - bb.minY), 
+        double x = bb.minX - RenderManager.renderPosX;
+        double y = bb.minY - RenderManager.renderPosY;
+        double z = bb.minZ - RenderManager.renderPosZ;
+
+        AxisAlignedBB bb2 = AxisAlignedBB.getBoundingBox(x, y, z,
+                                           x + (bb.maxX - bb.minX),
+                                           y + (bb.maxY - bb.minY),
                                            z + (bb.maxZ - bb.minZ));
-        
+
         setupRendering();
         GL11.glColor4f(rgb[0], rgb[1], rgb[2], alpha * (float) opacity.getInput());
         GL11.glLineWidth((float) lineWidth.getInput());
-        
+
         if (filled.isToggled()) {
             drawFilledBox(bb2, rgb[0], rgb[1], rgb[2], alpha * (float) opacity.getInput() * 0.3f);
         }
-        
+
         if (outline.isToggled()) {
             drawBoxOutline(bb2, rgb[0], rgb[1], rgb[2], alpha * (float) opacity.getInput());
         }
-        
+
         restoreRendering();
     }
 
     private void renderOutlineESP(Entity entity, int color, float alpha) {
         float[] rgb = getRGB(color);
-        
-        AxisAlignedBB bb = entity.getEntityBoundingBox();
-        double x = bb.minX - mc.getRenderManager().viewerPosX;
-        double y = bb.minY - mc.getRenderManager().viewerPosY;
-        double z = bb.minZ - mc.getRenderManager().viewerPosZ;
-        
-        AxisAlignedBB bb2 = new AxisAlignedBB(x, y, z, 
-                                           x + (bb.maxX - bb.minX), 
-                                           y + (bb.maxY - bb.minY), 
+
+        AxisAlignedBB bb = entity.boundingBox;
+        double x = bb.minX - RenderManager.renderPosX;
+        double y = bb.minY - RenderManager.renderPosY;
+        double z = bb.minZ - RenderManager.renderPosZ;
+
+        AxisAlignedBB bb2 = AxisAlignedBB.getBoundingBox(x, y, z,
+                                           x + (bb.maxX - bb.minX),
+                                           y + (bb.maxY - bb.minY),
                                            z + (bb.maxZ - bb.minZ));
-        
+
         setupRendering();
         GL11.glColor4f(rgb[0], rgb[1], rgb[2], alpha * (float) opacity.getInput());
         GL11.glLineWidth((float) lineWidth.getInput());
-        
+
         drawBoxOutline(bb2, rgb[0], rgb[1], rgb[2], alpha * (float) opacity.getInput());
         restoreRendering();
     }
 
     private void renderGlowESP(Entity entity, int color, float alpha) {
         float[] rgb = getRGB(color);
-        
-        AxisAlignedBB bb = entity.getEntityBoundingBox();
-        double x = bb.minX - mc.getRenderManager().viewerPosX;
-        double y = bb.minY - mc.getRenderManager().viewerPosY;
-        double z = bb.minZ - mc.getRenderManager().viewerPosZ;
-        
+
+        AxisAlignedBB bb = entity.boundingBox;
+        double x = bb.minX - RenderManager.renderPosX;
+        double y = bb.minY - RenderManager.renderPosY;
+        double z = bb.minZ - RenderManager.renderPosZ;
+
         setupRendering();
-        
+
         // Draw multiple expanding boxes for glow effect
         for (int i = 0; i < 3; i++) {
             double expand = 0.1 + (i * 0.05);
             float glowAlpha = alpha * (float) opacity.getInput() * (1.0f - (i * 0.3f));
-            
-            AxisAlignedBB bb2 = new AxisAlignedBB(x - expand, y - expand, z - expand, 
-                                               x + (bb.maxX - bb.minX) + expand, 
-                                               y + (bb.maxY - bb.minY) + expand, 
+
+            AxisAlignedBB bb2 = AxisAlignedBB.getBoundingBox(x - expand, y - expand, z - expand,
+                                               x + (bb.maxX - bb.minX) + expand,
+                                               y + (bb.maxY - bb.minY) + expand,
                                                z + (bb.maxZ - bb.minZ) + expand);
-            
+
             GL11.glColor4f(rgb[0], rgb[1], rgb[2], glowAlpha);
             GL11.glLineWidth((float) lineWidth.getInput() * (1.0f - i * 0.2f));
-            
+
             drawBoxOutline(bb2, rgb[0], rgb[1], rgb[2], glowAlpha);
         }
-        
+
         restoreRendering();
     }
 
     private void renderCornerESP(Entity entity, int color, float alpha) {
         float[] rgb = getRGB(color);
-        
-        AxisAlignedBB bb = entity.getEntityBoundingBox();
-        double x = bb.minX - mc.getRenderManager().viewerPosX;
-        double y = bb.minY - mc.getRenderManager().viewerPosY;
-        double z = bb.minZ - mc.getRenderManager().viewerPosZ;
-        
+
+        AxisAlignedBB bb = entity.boundingBox;
+        double x = bb.minX - RenderManager.renderPosX;
+        double y = bb.minY - RenderManager.renderPosY;
+        double z = bb.minZ - RenderManager.renderPosZ;
+
         double width = bb.maxX - bb.minX;
         double height = bb.maxY - bb.minY;
         double depth = bb.maxZ - bb.minZ;
-        
+
         setupRendering();
         GL11.glColor4f(rgb[0], rgb[1], rgb[2], alpha * (float) opacity.getInput());
         GL11.glLineWidth((float) lineWidth.getInput());
-        
+
         double cornerSize = 0.1;
-        
+
         // Draw corners
         drawCornerBox(x, y, z, cornerSize, rgb[0], rgb[1], rgb[2], alpha * (float) opacity.getInput());
         drawCornerBox(x + width - cornerSize, y, z, cornerSize, rgb[0], rgb[1], rgb[2], alpha * (float) opacity.getInput());
         drawCornerBox(x, y, z + depth - cornerSize, cornerSize, rgb[0], rgb[1], rgb[2], alpha * (float) opacity.getInput());
         drawCornerBox(x + width - cornerSize, y, z + depth - cornerSize, cornerSize, rgb[0], rgb[1], rgb[2], alpha * (float) opacity.getInput());
-        
+
         drawCornerBox(x, y + height - cornerSize, z, cornerSize, rgb[0], rgb[1], rgb[2], alpha * (float) opacity.getInput());
         drawCornerBox(x + width - cornerSize, y + height - cornerSize, z, cornerSize, rgb[0], rgb[1], rgb[2], alpha * (float) opacity.getInput());
         drawCornerBox(x, y + height - cornerSize, z + depth - cornerSize, cornerSize, rgb[0], rgb[1], rgb[2], alpha * (float) opacity.getInput());
         drawCornerBox(x + width - cornerSize, y + height - cornerSize, z + depth - cornerSize, cornerSize, rgb[0], rgb[1], rgb[2], alpha * (float) opacity.getInput());
-        
+
         restoreRendering();
     }
 
     private void renderTracerESP(Entity entity, int color, float alpha) {
         float[] rgb = getRGB(color);
-        
+
         // Calculate entity position
-        double entityX = entity.lastTickPosX + (entity.posX - entity.lastTickPosX) * Utils.Client.getTimer().renderPartialTicks - mc.getRenderManager().viewerPosX;
-        double entityY = entity.lastTickPosY + (entity.posY - entity.lastTickPosY) * Utils.Client.getTimer().renderPartialTicks - mc.getRenderManager().viewerPosY;
-        double entityZ = entity.lastTickPosZ + (entity.posZ - entity.lastTickPosZ) * Utils.Client.getTimer().renderPartialTicks - mc.getRenderManager().viewerPosZ;
-        
+        double entityX = entity.lastTickPosX + (entity.posX - entity.lastTickPosX) * Utils.Client.getTimer().renderPartialTicks - RenderManager.renderPosX;
+        double entityY = entity.lastTickPosY + (entity.posY - entity.lastTickPosY) * Utils.Client.getTimer().renderPartialTicks - RenderManager.renderPosY;
+        double entityZ = entity.lastTickPosZ + (entity.posZ - entity.lastTickPosZ) * Utils.Client.getTimer().renderPartialTicks - RenderManager.renderPosZ;
+
         // Player position (feet)
         double playerX = 0;
         double playerY = mc.thePlayer.getEyeHeight();
         double playerZ = 0;
-        
+
         setupRendering();
         GL11.glColor4f(rgb[0], rgb[1], rgb[2], alpha * (float) opacity.getInput());
         GL11.glLineWidth((float) lineWidth.getInput());
-        
+
         drawLine(playerX, playerY, playerZ, entityX, entityY, entityZ, rgb[0], rgb[1], rgb[2], alpha * (float) opacity.getInput());
         restoreRendering();
     }
@@ -386,12 +387,12 @@ public class EntityESP extends Module {
         drawLine(bb.maxX, bb.minY, bb.minZ, bb.maxX, bb.minY, bb.maxZ, r, g, b, a);
         drawLine(bb.maxX, bb.minY, bb.maxZ, bb.minX, bb.minY, bb.maxZ, r, g, b, a);
         drawLine(bb.minX, bb.minY, bb.maxZ, bb.minX, bb.minY, bb.minZ, r, g, b, a);
-        
+
         drawLine(bb.minX, bb.maxY, bb.minZ, bb.maxX, bb.maxY, bb.minZ, r, g, b, a);
         drawLine(bb.maxX, bb.maxY, bb.minZ, bb.maxX, bb.maxY, bb.maxZ, r, g, b, a);
         drawLine(bb.maxX, bb.maxY, bb.maxZ, bb.minX, bb.maxY, bb.maxZ, r, g, b, a);
         drawLine(bb.minX, bb.maxY, bb.maxZ, bb.minX, bb.maxY, bb.minZ, r, g, b, a);
-        
+
         drawLine(bb.minX, bb.minY, bb.minZ, bb.minX, bb.maxY, bb.minZ, r, g, b, a);
         drawLine(bb.maxX, bb.minY, bb.minZ, bb.maxX, bb.maxY, bb.minZ, r, g, b, a);
         drawLine(bb.maxX, bb.minY, bb.maxZ, bb.maxX, bb.maxY, bb.maxZ, r, g, b, a);
@@ -404,7 +405,7 @@ public class EntityESP extends Module {
     }
 
     private void drawCornerBox(double x, double y, double z, double size, float r, float g, float b, float a) {
-        AxisAlignedBB bb = new AxisAlignedBB(x, y, z, x + size, y + size, z + size);
+        AxisAlignedBB bb = AxisAlignedBB.getBoundingBox(x, y, z, x + size, y + size, z + size);
         drawBoxOutline(bb, r, g, b, a);
     }
 

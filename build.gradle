@@ -1,31 +1,33 @@
 
-// For those who want the bleeding edge
 buildscript {
     repositories {
-        jcenter()
+        mavenCentral()
         maven {
             name = "forge"
-            url = "http://files.minecraftforge.net/maven"
+            url = "https://maven.minecraftforge.net/"
         }
         maven {
             url 'https://repo.spongepowered.org/maven'
         }
+        maven {
+            url 'https://jitpack.io'
+        }
     }
     dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:2.1-SNAPSHOT'
+        classpath 'net.minecraftforge.gradle:ForgeGradle:1.2-SNAPSHOT'
         classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.4'
         classpath 'org.spongepowered:mixingradle:0.6-SNAPSHOT'
     }
 }
 
+apply plugin: 'forge'
 apply plugin: 'com.github.johnrengelman.shadow'
-apply plugin: 'net.minecraftforge.gradle.forge'
 apply plugin: 'org.spongepowered.mixin'
 apply plugin: 'java'
 
 version = "1.2"
 group = "keystrokesmod"
-archivesBaseName = "[1.8.9] BetterKeystrokes V"
+archivesBaseName = "[1.7.10] BetterKeystrokes V"
 
 compileJava {
     sourceCompatibility = '1.8'
@@ -34,18 +36,15 @@ compileJava {
 }
 
 minecraft {
-    version = "1.8.9-11.15.1.2318-1.8.9"
+    version = "1.7.10-10.13.4.1614-1.7.10"
     runDir = "run"
 
-    mappings = "stable_20"
-    //clientJvmArgs += "-Dfml.coreMods.load=keystrokesmod.sToNkS.tweaker.FMLLoadingPlugin"
+    mappings = "stable_12"
     clientJvmArgs += '-Dfml.coreMods.load=keystrokesmod.client.mixin.MixinLoader'
 }
 
 mixin {
-    // The obfuscation environment to use when generating refMaps. This is the obfuscation which will end up in the mappings in the generated refMap.
-    defaultObfuscationEnv searge // Types of obf env: searge, notch.
-    // Sets the main sourceSets refmap name instead of add sourceSets.main so there is no conflict cause of it adding another value instead of setting the 1 value.
+    defaultObfuscationEnv searge
     sourceSets {
         main {
             ext.refMap = 'mixins.keystrokesmod.refmap.json'
@@ -54,28 +53,21 @@ mixin {
 }
 
 repositories {
-    // The mavenCentral() alias means that dependencies are fetched from the central Maven 2 repository (https://repo1.maven.org/maven2).
     mavenCentral()
-    // The url to get the spongepowered dependencies from.
     maven {
         url 'https://repo.spongepowered.org/maven'
     }
 }
 
 configurations {
-    // Adds a reference so that we extend/add on to it with depends so we can grab them and compile them into the jar.
     embed
-    // Grabs what's extended/added on from/to embed and compiles it into the jar when being built.
     compile.extendsFrom embed
 }
 
 dependencies {
     compile group: 'commons-io', name: 'commons-io', version: '2.11.0'
-    embed(fileTree(dir: "libs", include: "discord-rpc.jar"))
 
-    embed('org.spongepowered:mixin:0.6-SNAPSHOT') {
-
-        // Excludes unneeded stuff.
+    embed('org.spongepowered:mixin:0.7.11-SNAPSHOT') {
         exclude module: 'gson'
         exclude module: 'guava'
         exclude module: 'jarjar'
@@ -103,20 +95,10 @@ processResources {
     }
 }
 
-
-/*
-// for people who want stable - not yet functional for MC 1.8.8 - we require the forgegradle 2.1 snapshot
-plugins {
-    id "net.minecraftforge.gradle.forge" version "2.0.2"
-}
-*/
-
-/* -Dfml.coreMods.load=keystrokesmod.sToNkS.tweaker.FMLLoadingPlugin*/
 jar {
     from(configurations.embed.collect {
         it.isDirectory() ? it : zipTree(it)
     }) {
-        // Excludes/Removes useless bloat files from the compiled jar.
         exclude 'dummyThing',
                 'LICENSE.txt',
                 'META-INF/MUMFREY.RSA',
@@ -135,28 +117,3 @@ jar {
         )
     }
 }
-
-/*
-shadowJar {
-    manifest {
-        attributes(
-                'MixinConfigs': 'mixins.keystrokesmod.json',
-                'TweakClass': 'org.spongepowered.asm.launch.MixinTweaker',
-                'TweakOrder': 0,
-                "FMLCorePlugin": "keystrokesmod.client.mixin.Mixinloader",
-                "ForceLoadAsMod": true,
-                'FMLCorePluginContainsFMLMod': true,
-                "ModSide": "CLIENT"
-        )
-    }
-}
-
- */
-
-/*
-reobf {
-    shadowJar {} // Reobfuscate the shadowed JAR
-}
-
- */
-

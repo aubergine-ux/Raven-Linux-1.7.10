@@ -7,10 +7,8 @@ import keystrokesmod.client.module.modules.world.AntiBot;
 import keystrokesmod.client.module.setting.impl.SliderSetting;
 import keystrokesmod.client.module.setting.impl.TickSetting;
 import keystrokesmod.client.utils.Utils;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.WorldRenderer;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.client.event.RenderLivingEvent.Specials.Pre;
 import org.lwjgl.opengl.GL11;
@@ -46,12 +44,12 @@ public class Nametags extends Module {
                         return;
                     }
 
-                    if (AntiBot.bot(en) || en.getDisplayNameString().isEmpty()) {
+                    if (AntiBot.bot(en) || en.getDisplayName().isEmpty()) {
                         return;
                     }
 
                     e.setCanceled(true);
-                    String str = en.getDisplayName().getFormattedText();
+                    String str = en.getDisplayName();
                     if (c.isToggled()) {
                         double r = en.getHealth() / en.getMaxHealth();
                         String h = (r < 0.3D ? "§c" : (r < 0.5D ? "§6" : (r < 0.7D ? "§e" : "§a")))
@@ -59,44 +57,44 @@ public class Nametags extends Module {
                         str = str + " " + h;
                     }
 
-                    GlStateManager.pushMatrix();
-                    GlStateManager.translate((float) e.x + 0.0F, (float) e.y + en.height + 0.5F, (float) e.z);
+                    GL11.glPushMatrix();
+                    GL11.glTranslated((float) e.x + 0.0F, (float) e.y + en.height + 0.5F, (float) e.z);
                     GL11.glNormal3f(0.0F, 1.0F, 0.0F);
-                    GlStateManager.rotate(-mc.getRenderManager().playerViewY, 0.0F, 1.0F, 0.0F);
-                    GlStateManager.rotate(mc.getRenderManager().playerViewX, 1.0F, 0.0F, 0.0F);
+                    GL11.glRotatef(-RenderManager.playerViewY, 0.0F, 1.0F, 0.0F);
+                    GL11.glRotatef(RenderManager.playerViewX, 1.0F, 0.0F, 0.0F);
                     float f1 = 0.02666667F;
-                    GlStateManager.scale(-f1, -f1, f1);
+                    GL11.glScalef(-f1, -f1, f1);
                     if (en.isSneaking()) {
-                        GlStateManager.translate(0.0F, 9.374999F, 0.0F);
+                        GL11.glTranslated(0.0F, 9.374999F, 0.0F);
                     }
 
-                    GlStateManager.disableLighting();
-                    GlStateManager.depthMask(false);
-                    GlStateManager.disableDepth();
-                    GlStateManager.enableBlend();
-                    GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
-                    Tessellator tessellator = Tessellator.getInstance();
-                    WorldRenderer worldrenderer = tessellator.getWorldRenderer();
+                    GL11.glDisable(GL11.GL_LIGHTING);
+                    GL11.glDepthMask(false);
+                    GL11.glDisable(GL11.GL_DEPTH_TEST);
+                    GL11.glEnable(GL11.GL_BLEND);
+                    GL11.glBlendFunc(770, 771);
+                    Tessellator tessellator = Tessellator.instance;
                     int i = (int) (-a.getInput());
                     int j = mc.fontRendererObj.getStringWidth(str) / 2;
-                    GlStateManager.disableTexture2D();
+                    GL11.glDisable(GL11.GL_TEXTURE_2D);
                     if (b.isToggled()) {
-                        worldrenderer.begin(7, DefaultVertexFormats.POSITION_COLOR);
-                        worldrenderer.pos(-j - 1, -1 + i, 0.0D).color(0.0F, 0.0F, 0.0F, 0.25F).endVertex();
-                        worldrenderer.pos(-j - 1, 8 + i, 0.0D).color(0.0F, 0.0F, 0.0F, 0.25F).endVertex();
-                        worldrenderer.pos(j + 1, 8 + i, 0.0D).color(0.0F, 0.0F, 0.0F, 0.25F).endVertex();
-                        worldrenderer.pos(j + 1, -1 + i, 0.0D).color(0.0F, 0.0F, 0.0F, 0.25F).endVertex();
+                        tessellator.startDrawingQuads();
+                        tessellator.setColorRGBA_F(0.0F, 0.0F, 0.0F, 0.25F);
+                        tessellator.addVertex(-j - 1, -1 + i, 0.0D);
+                        tessellator.addVertex(-j - 1, 8 + i, 0.0D);
+                        tessellator.addVertex(j + 1, 8 + i, 0.0D);
+                        tessellator.addVertex(j + 1, -1 + i, 0.0D);
                         tessellator.draw();
                     }
 
-                    GlStateManager.enableTexture2D();
+                    GL11.glEnable(GL11.GL_TEXTURE_2D);
                     mc.fontRendererObj.drawString(str, -mc.fontRendererObj.getStringWidth(str) / 2, i, -1);
-                    GlStateManager.enableDepth();
-                    GlStateManager.depthMask(true);
-                    GlStateManager.enableLighting();
-                    GlStateManager.disableBlend();
-                    GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-                    GlStateManager.popMatrix();
+                    GL11.glEnable(GL11.GL_DEPTH_TEST);
+                    GL11.glDepthMask(true);
+                    GL11.glEnable(GL11.GL_LIGHTING);
+                    GL11.glDisable(GL11.GL_BLEND);
+                    GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+                    GL11.glPopMatrix();
                 }
 
             }

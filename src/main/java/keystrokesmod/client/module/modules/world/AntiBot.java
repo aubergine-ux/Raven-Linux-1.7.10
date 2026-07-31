@@ -64,16 +64,16 @@ public class AntiBot extends Module {
         }
         Module antiBot = Raven.moduleManager.getModuleByClazz(AntiBot.class);
         if ((antiBot != null && !antiBot.isEnabled()) || !Utils.Client.isHyp()) {
-        } else if ((a.isToggled() && !newEnt.isEmpty() && newEnt.containsKey(en)) || en.getName().startsWith("§c")) {
+        } else if ((a.isToggled() && !newEnt.isEmpty() && newEnt.containsKey(en)) || en.getCommandSenderName().startsWith("§c")) {
             return true;
         } else if(en.isDead && dead.isToggled()) {
             return true;
         } else {
-            String n = en.getDisplayName().getUnformattedText();
+            String n = (en instanceof EntityPlayer) ? ((EntityPlayer) en).getDisplayName() : en.getCommandSenderName();
             if (n.contains("§")) {
                 return n.contains("[NPC] ");
             }
-            if (n.isEmpty() && en.getName().isEmpty()) {
+            if (n.isEmpty() && en.getCommandSenderName().isEmpty()) {
                 return true;
             }
 

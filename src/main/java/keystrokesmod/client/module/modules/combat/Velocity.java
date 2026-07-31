@@ -92,9 +92,9 @@ public class Velocity extends Module {
 
                 }
 
-                if (mc.thePlayer.getLastAttacker() instanceof EntityPlayer) {
+                if (mc.thePlayer.getAITarget() instanceof EntityPlayer) {
 
-                    EntityPlayer attacker = (EntityPlayer) mc.thePlayer.getLastAttacker();
+                    EntityPlayer attacker = (EntityPlayer) mc.thePlayer.getAITarget();
 
                     Item item = attacker.getCurrentEquippedItem() != null ? attacker.getCurrentEquippedItem().getItem()
 

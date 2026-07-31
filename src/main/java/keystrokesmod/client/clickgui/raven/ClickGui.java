@@ -142,7 +142,7 @@ public class ClickGui extends GuiScreen {
             float opacity = GuiModule.getAnimeGirlOpacity() / 100.0f;
             GL11.glColor4f(1.0F, 1.0F, 1.0F, opacity);
             this.mc.getTextureManager().bindTexture(animeGirlLocation);
-            this.drawModalRectWithCustomSizedTexture(animeX, animeY, 0, 0, animeWidth, animeHeight, animeWidth, animeHeight);
+            RenderUtils.drawModalRectWithCustomSizedTexture(animeX, animeY, 0, 0, animeWidth, animeHeight, animeWidth, animeHeight);
             GL11.glDisable(GL11.GL_BLEND);
         }
         

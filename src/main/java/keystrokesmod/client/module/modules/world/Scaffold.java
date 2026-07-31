@@ -30,9 +30,9 @@ import keystrokesmod.client.utils.font.FontUtil;
 
 import net.minecraft.client.gui.ScaledResolution;
 
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.util.MathHelper;
+import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import org.lwjgl.opengl.GL11;
 
@@ -50,7 +50,8 @@ public class Scaffold extends Module {
 
     private float yaw, pitch;
     private int blockCount;
-    private BlockPos targetBlock;
+    private int targetBlockX, targetBlockY, targetBlockZ;
+    private boolean hasTargetBlock;
 
     public Scaffold() {
         super("Scaffold", ModuleCategory.world);
@@ -69,32 +70,37 @@ public class Scaffold extends Module {
 
         updateBlockCount();
 
-        BlockPos under = new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY - 1.0D, mc.thePlayer.posZ);
+        int underX = (int) Math.floor(mc.thePlayer.posX);
+        int underY = (int) Math.floor(mc.thePlayer.posY - 1.0D);
+        int underZ = (int) Math.floor(mc.thePlayer.posZ);
 
-        if (mc.theWorld.isAirBlock(under)) {
-            BlockPos neighbor = null;
-            EnumFacing side = null;
+        if (mc.theWorld.isAirBlock(underX, underY, underZ)) {
+            int neighborX = -1, neighborY = -1, neighborZ = -1;
+            int side = -1;
 
-            if (!mc.theWorld.isAirBlock(under.down())) {
-                neighbor = under.down();
-                side = EnumFacing.UP;
-            } else if (!mc.theWorld.isAirBlock(under.north())) {
-                neighbor = under.north();
-                side = EnumFacing.SOUTH;
-            } else if (!mc.theWorld.isAirBlock(under.south())) {
-                neighbor = under.south();
-                side = EnumFacing.NORTH;
-            } else if (!mc.theWorld.isAirBlock(under.east())) {
-                neighbor = under.east();
-                side = EnumFacing.WEST;
-            } else if (!mc.theWorld.isAirBlock(under.west())) {
-                neighbor = under.west();
-                side = EnumFacing.EAST;
+            if (!mc.theWorld.isAirBlock(underX, underY - 1, underZ)) {
+                neighborX = underX; neighborY = underY - 1; neighborZ = underZ;
+                side = 1; // UP
+            } else if (!mc.theWorld.isAirBlock(underX, underY, underZ - 1)) {
+                neighborX = underX; neighborY = underY; neighborZ = underZ - 1;
+                side = 3; // SOUTH
+            } else if (!mc.theWorld.isAirBlock(underX, underY, underZ + 1)) {
+                neighborX = underX; neighborY = underY; neighborZ = underZ + 1;
+                side = 2; // NORTH
+            } else if (!mc.theWorld.isAirBlock(underX + 1, underY, underZ)) {
+                neighborX = underX + 1; neighborY = underY; neighborZ = underZ;
+                side = 4; // WEST
+            } else if (!mc.theWorld.isAirBlock(underX - 1, underY, underZ)) {
+                neighborX = underX - 1; neighborY = underY; neighborZ = underZ;
+                side = 5; // EAST
             }
 
-            if (neighbor != null) {
-                targetBlock = under; // Store target block for rendering
-                float[] rots = getRotations(neighbor, side);
+            if (side != -1) {
+                targetBlockX = underX;
+                targetBlockY = underY;
+                targetBlockZ = underZ;
+                hasTargetBlock = true;
+                float[] rots = getRotations(neighborX, neighborY, neighborZ, side);
                 yaw = rots[0];
                 pitch = rots[1];
 
@@ -103,19 +109,19 @@ public class Scaffold extends Module {
                     int prevSlot = mc.thePlayer.inventory.currentItem;
                     mc.thePlayer.inventory.currentItem = blockSlot;
 
-                    if (mc.playerController.onPlayerRightClick(mc.thePlayer, mc.theWorld, mc.thePlayer.getHeldItem(), neighbor, side, new net.minecraft.util.Vec3(neighbor.getX() + 0.5, neighbor.getY() + 0.5, neighbor.getZ() + 0.5))) {
+                    if (mc.playerController.onPlayerRightClick(mc.thePlayer, mc.theWorld, mc.thePlayer.getHeldItem(), neighborX, neighborY, neighborZ, side, Vec3.createVectorHelper(neighborX + 0.5, neighborY + 0.5, neighborZ + 0.5))) {
                         mc.thePlayer.swingItem();
                     }
 
                     mc.thePlayer.inventory.currentItem = prevSlot;
                 }
             } else {
-                targetBlock = null; // No valid block to place
+                hasTargetBlock = false;
             }
         } else {
             yaw = mc.thePlayer.rotationYaw;
             pitch = mc.thePlayer.rotationPitch;
-            targetBlock = null; // No block needed
+            hasTargetBlock = false;
         }
 
         if (eagle.isToggled()) {
@@ -146,23 +152,23 @@ public class Scaffold extends Module {
 
     @Subscribe
     public void onRender2D(Render2DEvent e) {
-        ScaledResolution sr = new ScaledResolution(mc);
+        ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
         FontUtil.normal.drawCenteredSmoothString(blockCount + " blocks", (int) (sr.getScaledWidth() / 2f + 8), (int) (sr.getScaledHeight() / 2f - 4), blockCount <= 16 ? 0xff0000 : -1);
     }
 
     @Subscribe
     public void onRenderWorld(RenderWorldLastEvent event) {
-        if (!render.isToggled() || targetBlock == null) return;
+        if (!render.isToggled() || !hasTargetBlock) return;
         if (!Utils.Player.isPlayerInGame()) return;
 
         // Render target block
-        renderBlock(targetBlock, event.partialTicks);
+        renderBlock(targetBlockX, targetBlockY, targetBlockZ, event.partialTicks);
     }
 
-    private void renderBlock(BlockPos pos, float partialTicks) {
-        double x = pos.getX() - mc.getRenderManager().viewerPosX;
-        double y = pos.getY() - mc.getRenderManager().viewerPosY;
-        double z = pos.getZ() - mc.getRenderManager().viewerPosZ;
+    private void renderBlock(int posX, int posY, int posZ, float partialTicks) {
+        double x = posX - RenderManager.renderPosX;
+        double y = posY - RenderManager.renderPosY;
+        double z = posZ - RenderManager.renderPosZ;
 
         float r = (float) renderColorR.getInput() / 255.0f;
         float g = (float) renderColorG.getInput() / 255.0f;
@@ -276,14 +282,41 @@ public class Scaffold extends Module {
         GL11.glEnd();
     }
 
-    private float[] getRotations(BlockPos pos, EnumFacing facing) {
-        double x = pos.getX() + 0.5 - mc.thePlayer.posX + (double) facing.getFrontOffsetX() / 2.0;
-        double z = pos.getZ() + 0.5 - mc.thePlayer.posZ + (double) facing.getFrontOffsetZ() / 2.0;
-        double y = pos.getY() + 0.5 - (mc.thePlayer.posY + (double) mc.thePlayer.getEyeHeight()) + (double) facing.getFrontOffsetY() / 2.0;
+    private float[] getRotations(int posX, int posY, int posZ, int facing) {
+        int offsetX = getFrontOffsetX(facing);
+        int offsetY = getFrontOffsetY(facing);
+        int offsetZ = getFrontOffsetZ(facing);
+        double x = posX + 0.5 - mc.thePlayer.posX + (double) offsetX / 2.0;
+        double z = posZ + 0.5 - mc.thePlayer.posZ + (double) offsetZ / 2.0;
+        double y = posY + 0.5 - (mc.thePlayer.posY + (double) mc.thePlayer.getEyeHeight()) + (double) offsetY / 2.0;
         double dist = MathHelper.sqrt_double(x * x + z * z);
         float yaw = (float) (Math.atan2(z, x) * 180.0 / Math.PI) - 90.0f;
         float pitch = (float) (-(Math.atan2(y, dist) * 180.0 / Math.PI));
         return new float[]{mc.thePlayer.rotationYaw + MathHelper.wrapAngleTo180_float(yaw - mc.thePlayer.rotationYaw), mc.thePlayer.rotationPitch + MathHelper.wrapAngleTo180_float(pitch - mc.thePlayer.rotationPitch)};
+    }
+
+    private static int getFrontOffsetX(int side) {
+        switch (side) {
+            case 4: return -1; // WEST
+            case 5: return 1;  // EAST
+            default: return 0;
+        }
+    }
+
+    private static int getFrontOffsetY(int side) {
+        switch (side) {
+            case 0: return -1; // DOWN
+            case 1: return 1;  // UP
+            default: return 0;
+        }
+    }
+
+    private static int getFrontOffsetZ(int side) {
+        switch (side) {
+            case 2: return -1; // NORTH
+            case 3: return 1;  // SOUTH
+            default: return 0;
+        }
     }
 
     private void updateBlockCount() {

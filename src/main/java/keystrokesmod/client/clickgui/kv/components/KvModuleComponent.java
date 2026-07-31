@@ -65,7 +65,7 @@ public class KvModuleComponent extends KvComponent{
 
         Minecraft.getMinecraft().getTextureManager().bindTexture(moduleIcon);
         GL11.glColor4f(1.0f, 1.0f, 1.0f, 1f);
-        Gui.drawModalRectWithCustomSizedTexture(x + (FontUtil.normal.getHeight()/2), y, 0, 0, width - FontUtil.normal.getHeight(), nameHeight, width - FontUtil.normal.getHeight(), nameHeight);
+        RenderUtils.drawModalRectWithCustomSizedTexture(x + (FontUtil.normal.getHeight()/2), y, 0, 0, width - FontUtil.normal.getHeight(), nameHeight, width - FontUtil.normal.getHeight(), nameHeight);
 
         Gui.drawRect(toggleX, toggleY, toggleX + width, toggleY + 1, Utils.Client.rainbowDraw(1, 0));
         Gui.drawRect(settingX, settingY, settingX + 1, settingY + settingHeight, Utils.Client.rainbowDraw(1, 0));
@@ -75,7 +75,7 @@ public class KvModuleComponent extends KvComponent{
 
         Minecraft.getMinecraft().getTextureManager().bindTexture(settingIcon);
         GL11.glColor4f(1.0f, 1.0f, 1.0f, 1f);
-        Gui.drawModalRectWithCustomSizedTexture(settingX, settingY, 0, 0, settingWidth, settingHeight, settingWidth, settingHeight);
+        RenderUtils.drawModalRectWithCustomSizedTexture(settingX, settingY, 0, 0, settingWidth, settingHeight, settingWidth, settingHeight);
     }
 
     public void drawOpen(int mouseX, int mouseY) {
@@ -105,7 +105,7 @@ public class KvModuleComponent extends KvComponent{
         Minecraft.getMinecraft().getTextureManager().bindTexture(settingIcon);
 
         //settings icon
-        Gui.drawModalRectWithCustomSizedTexture(settingX2, settingY2, 0, 0, settingWidth2, settingHeight2, settingWidth2, settingHeight2);
+        RenderUtils.drawModalRectWithCustomSizedTexture(settingX2, settingY2, 0, 0, settingWidth2, settingHeight2, settingWidth2, settingHeight2);
 
         //settings box
         RenderUtils.drawBorderedRoundedRect(
@@ -132,7 +132,7 @@ public class KvModuleComponent extends KvComponent{
         		xOffset = settingsBoxWidth/2;
         	}
         }
-        int sf = new ScaledResolution(Raven.mc).getScaleFactor();
+        int sf = new ScaledResolution(Raven.mc, Raven.mc.displayWidth, Raven.mc.displayHeight).getScaleFactor();
         GL11.glScissor(settingsBoxX * sf, (titleBoxY - ((titleBoxHeight - bindBoxHeight) + (KvModuleSection.padding * 3)))* sf, settingsBoxWidth * sf, (settingsBoxHeight - bindBoxHeight) * sf);
         GL11.glEnable(GL11.GL_SCISSOR_TEST);
         for(KvComponent component : settings)

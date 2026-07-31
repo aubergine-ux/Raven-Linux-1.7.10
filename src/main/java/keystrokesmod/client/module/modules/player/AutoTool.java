@@ -15,7 +15,6 @@ import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemShears;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemTool;
-import net.minecraft.util.BlockPos;
 import org.lwjgl.input.Mouse;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -28,8 +27,6 @@ public class AutoTool extends Module {
     public static int previousSlot;
     public static boolean justFinishedMining, mining;
     public static CoolDown delay;
-    // public static List<Block> pickaxe = Arrays.asList(ItemBlock.class,
-    // BlockIce.class);
 
     public AutoTool() {
         super("Auto Tool", ModuleCategory.player);
@@ -61,10 +58,12 @@ public class AutoTool extends Module {
             }
         }
 
-        BlockPos lookingAtBlock = mc.objectMouseOver.getBlockPos();
-        if (lookingAtBlock != null) {
+        if (mc.objectMouseOver != null && mc.objectMouseOver.typeOfHit == net.minecraft.util.MovingObjectPosition.MovingObjectType.BLOCK) {
+            int blockX = mc.objectMouseOver.blockX;
+            int blockY = mc.objectMouseOver.blockY;
+            int blockZ = mc.objectMouseOver.blockZ;
 
-            Block stateBlock = mc.theWorld.getBlockState(lookingAtBlock).getBlock();
+            Block stateBlock = mc.theWorld.getBlock(blockX, blockY, blockZ);
             if (stateBlock != Blocks.air && !(stateBlock instanceof BlockLiquid) && stateBlock != null) {
 
                 if (mineDelay.getInputMax() > 0) {
@@ -116,11 +115,14 @@ public class AutoTool extends Module {
             ItemStack itemInSlot = mc.thePlayer.inventory.getStackInSlot(slot);
             if (itemInSlot != null) {
                 if (itemInSlot.getItem() instanceof ItemTool || itemInSlot.getItem() instanceof ItemShears) {
-                    BlockPos p = mc.objectMouseOver.getBlockPos();
-                    Block bl = mc.theWorld.getBlockState(p).getBlock();
+                    int bx = mc.objectMouseOver.blockX;
+                    int by = mc.objectMouseOver.blockY;
+                    int bz = mc.objectMouseOver.blockZ;
+                    Block bl = mc.theWorld.getBlock(bx, by, bz);
+                    int meta = mc.theWorld.getBlockMetadata(bx, by, bz);
 
-                    if (itemInSlot.getItem().getDigSpeed(itemInSlot, bl.getDefaultState()) > speed) {
-                        speed = itemInSlot.getItem().getDigSpeed(itemInSlot, bl.getDefaultState());
+                    if (itemInSlot.getItem().getDigSpeed(itemInSlot, bl, meta) > speed) {
+                        speed = itemInSlot.getItem().getDigSpeed(itemInSlot, bl, meta);
                         index = slot;
                     }
                 }

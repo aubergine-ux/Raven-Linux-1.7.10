@@ -31,8 +31,6 @@ import net.minecraft.item.ItemSword;
 import net.minecraft.network.play.client.C07PacketPlayerDigging;
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.EnumFacing;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
@@ -152,8 +150,8 @@ public class KillAura extends Module {
 
     private void executeAttack() {
         if (raytrace.isToggled()) {
-            Vec3 eyes = mc.thePlayer.getPositionEyes(1.0F);
-            Vec3 toTarget = new Vec3(target.posX, target.posY + (double) target.getEyeHeight(), target.posZ);
+            Vec3 eyes = Vec3.createVectorHelper(mc.thePlayer.posX, mc.thePlayer.posY + mc.thePlayer.getEyeHeight(), mc.thePlayer.posZ);
+            Vec3 toTarget = Vec3.createVectorHelper(target.posX, target.posY + (double) target.getEyeHeight(), target.posZ);
             MovingObjectPosition mop = mc.theWorld.rayTraceBlocks(eyes, toTarget);
             if (mop != null) {
                 // There's a block between us and the target - swing but don't hit
@@ -161,23 +159,23 @@ public class KillAura extends Module {
                 return;
             }
         }
-        
+
         // Unblock before hitting
         if (isBlocking) {
-            mc.getNetHandler().addToSendQueue(new C07PacketPlayerDigging(C07PacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN));
+            mc.getNetHandler().addToSendQueue(new C07PacketPlayerDigging(5, 0, 0, 0, 0));
             isBlocking = false;
         }
-        
+
         mc.thePlayer.swingItem();
         mc.playerController.attackEntity(mc.thePlayer, target);
-        
+
         // Autoblock after hitting
         AutoBlockMode mode = (AutoBlockMode) blockMode.getMode();
         if (mode == AutoBlockMode.Spoof && mc.thePlayer.getHeldItem() != null && mc.thePlayer.getHeldItem().getItem() instanceof ItemSword) {
-            mc.getNetHandler().addToSendQueue(new C08PacketPlayerBlockPlacement(mc.thePlayer.getHeldItem()));
+            mc.getNetHandler().addToSendQueue(new C08PacketPlayerBlockPlacement(-1, -1, -1, 255, mc.thePlayer.getHeldItem(), 0.0F, 0.0F, 0.0F));
             isBlocking = true;
         } else if (mode == AutoBlockMode.Interact && mc.thePlayer.getHeldItem() != null && mc.thePlayer.getHeldItem().getItem() instanceof ItemSword) {
-            mc.playerController.sendUseItem(mc.thePlayer, mc.theWorld, mc.thePlayer.getHeldItem());
+            mc.getNetHandler().addToSendQueue(new C08PacketPlayerBlockPlacement(-1, -1, -1, 255, mc.thePlayer.getHeldItem(), 0.0F, 0.0F, 0.0F));
             isBlocking = true;
         } else if (mode == AutoBlockMode.BlockHit && mc.thePlayer.getHeldItem() != null && mc.thePlayer.getHeldItem().getItem() instanceof ItemSword) {
             mc.thePlayer.setItemInUse(mc.thePlayer.getHeldItem(), 1);
@@ -271,7 +269,7 @@ public class KillAura extends Module {
 
     private void resetAttackState() {
         if (isBlocking) {
-            mc.getNetHandler().addToSendQueue(new C07PacketPlayerDigging(C07PacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN));
+            mc.getNetHandler().addToSendQueue(new C07PacketPlayerDigging(5, 0, 0, 0, 0));
             isBlocking = false;
         }
         target = null;

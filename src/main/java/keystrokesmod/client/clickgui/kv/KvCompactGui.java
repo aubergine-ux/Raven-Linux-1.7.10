@@ -110,7 +110,7 @@ public class KvCompactGui extends GuiScreen {
         }
         
         GL11.glColor4f(1f, 1f, 1f, 0.9f);
-        Gui.drawModalRectWithCustomSizedTexture(
+        RenderUtils.drawModalRectWithCustomSizedTexture(
                 containerX + 1,
                 containerY + 1,
                 0,

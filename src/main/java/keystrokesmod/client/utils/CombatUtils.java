@@ -3,7 +3,6 @@ package keystrokesmod.client.utils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.passive.EntityAnimal;
 import net.minecraft.entity.player.EntityPlayer;
@@ -20,7 +19,7 @@ public class CombatUtils {
             boolean isTeam = isTeam(Minecraft.getMinecraft().thePlayer, entity);
             boolean isVisible = (!entity.isInvisible());
 
-            return !(entity instanceof EntityArmorStand) && isVisible
+            return isVisible
                     && (entity instanceof EntityPlayer && !isTeam && !idk || entity instanceof EntityAnimal
                             || entity instanceof EntityMob
                             || entity instanceof EntityLivingBase && entityLivingBase.isEntityAlive());
@@ -40,8 +39,8 @@ public class CombatUtils {
 
         // 2. Display name color code check
         try {
-            String playerDisplay = player.getDisplayName().getFormattedText();
-            String otherDisplay = other.getDisplayName().getFormattedText();
+            String playerDisplay = player.getDisplayName();
+            String otherDisplay = other.getDisplayName();
             if (playerDisplay.length() > 1 && otherDisplay.length() > 1) {
                 if (playerDisplay.charAt(1) == otherDisplay.charAt(1)) {
                     return true;

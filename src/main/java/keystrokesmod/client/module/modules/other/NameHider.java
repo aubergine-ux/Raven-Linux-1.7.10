@@ -16,7 +16,7 @@ public class NameHider extends Module {
 
     public static String format(String s) {
         if (mc.thePlayer != null) {
-            s = playerNick.isEmpty() ? s.replace(mc.thePlayer.getName(), n) : s.replace(playerNick, n);
+            s = playerNick.isEmpty() ? s.replace(mc.thePlayer.getCommandSenderName(), n) : s.replace(playerNick, n);
         }
 
         return s;

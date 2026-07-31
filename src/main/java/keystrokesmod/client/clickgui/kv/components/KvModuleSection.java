@@ -59,7 +59,7 @@ public class KvModuleSection extends KvSection {
                 containerX + (containerWidth / 4) + 1, containerY + containerHeight, Utils.Client.rainbowDraw(1, 0));
 
         // drawing categories
-        int sf = new ScaledResolution(Raven.mc).getScaleFactor();
+        int sf = new ScaledResolution(Raven.mc, Raven.mc.displayWidth, Raven.mc.displayHeight).getScaleFactor();
 
         GL11.glScissor(
                 categoryX * sf, (categoryY - (containerHeight / 6))* sf, categoryWidth * sf, categoryHeight * sf);

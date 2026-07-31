@@ -7,12 +7,12 @@ import keystrokesmod.client.module.setting.impl.ComboSetting;
 import keystrokesmod.client.module.setting.impl.SliderSetting;
 import keystrokesmod.client.utils.Utils;
 import net.minecraft.network.play.client.C03PacketPlayer;
-import net.minecraft.util.BlockPos;
 
 public class AntiVoid extends Module {
     public static ComboSetting mode;
     public static SliderSetting triggerY;
-    private BlockPos lastSafePos = null;
+    private double lastSafeX, lastSafeY, lastSafeZ;
+    private boolean hasSafePos = false;
     private boolean wasOnGround = false;
 
     public AntiVoid() {
@@ -26,17 +26,20 @@ public class AntiVoid extends Module {
         if (!Utils.Player.isPlayerInGame()) return;
 
         if (mc.thePlayer.onGround) {
-            lastSafePos = new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
+            lastSafeX = mc.thePlayer.posX;
+            lastSafeY = mc.thePlayer.posY;
+            lastSafeZ = mc.thePlayer.posZ;
+            hasSafePos = true;
             wasOnGround = true;
         }
 
         if (mc.thePlayer.posY < triggerY.getInput() && !mc.thePlayer.onGround) {
-            if (mc.theWorld.isAirBlock(new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY - 1, mc.thePlayer.posZ))
+            if (mc.theWorld.isAirBlock((int) Math.floor(mc.thePlayer.posX), (int) Math.floor(mc.thePlayer.posY) - 1, (int) Math.floor(mc.thePlayer.posZ))
                     && mc.thePlayer.motionY < 0) {
                 switch ((AntiVoidMode) mode.getMode()) {
                     case Blink:
-                        if (lastSafePos != null) {
-                            mc.thePlayer.setPosition(lastSafePos.getX() + 0.5, lastSafePos.getY(), lastSafePos.getZ() + 0.5);
+                        if (hasSafePos) {
+                            mc.thePlayer.setPosition(lastSafeX, lastSafeY, lastSafeZ);
                             mc.thePlayer.motionY = 0;
                         }
                         break;
@@ -56,7 +59,7 @@ public class AntiVoid extends Module {
 
     @Override
     public void onDisable() {
-        lastSafePos = null;
+        hasSafePos = false;
         wasOnGround = false;
         super.onDisable();
     }

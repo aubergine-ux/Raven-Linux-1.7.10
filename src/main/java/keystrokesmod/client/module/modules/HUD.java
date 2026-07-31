@@ -38,7 +38,7 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.client.config.GuiButtonExt;
+import cpw.mods.fml.client.config.GuiButtonExt;
 
 public class HUD extends Module {
     public static TickSetting editPosition, dropShadow, logo, watermark, keybinds, arrayListBackground, arrayListBorder;
@@ -134,7 +134,7 @@ public class HUD extends Module {
 
             boolean fhe = Raven.moduleManager.getModuleByName("Fake Hud").isEnabled();
             if (!e) {
-                ScaledResolution sr = new ScaledResolution(mc);
+                ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
                 positionMode = Utils.HUD.getPostitionMode(hudX, hudY, sr.getScaledWidth(), sr.getScaledHeight());
                 if ((positionMode == Utils.HUD.PositionMode.UPLEFT) || (positionMode == Utils.HUD.PositionMode.UPRIGHT)) {
                     if (!fhe)
@@ -327,7 +327,7 @@ public class HUD extends Module {
 
     
     private void drawLogo(int e) {
-        ScaledResolution sr = new ScaledResolution(mc);
+        ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
         logoHeight = (sr.getScaledHeight() * logoScaleh.getInput()) / 10;
         if (logoLoaded()) {
             if ((positionMode == Utils.HUD.PositionMode.DOWNRIGHT) || (positionMode == Utils.HUD.PositionMode.UPRIGHT)) {
@@ -370,7 +370,7 @@ public class HUD extends Module {
                     .add(this.resetPosButton = new GuiButtonExt(1, this.width - 90, 5, 85, 20, "Reset position"));
             this.marginX = hudX;
             this.marginY = hudY;
-            sr = new ScaledResolution(mc);
+            sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
             positionMode = Utils.HUD.getPostitionMode(marginX, marginY, sr.getScaledWidth(), sr.getScaledHeight());
             e = false;
         }
@@ -391,7 +391,7 @@ public class HUD extends Module {
             this.textBoxEndY = textBoxEndY;
             hudX = textBoxStartX;
             hudY = textBoxStartY;
-            ScaledResolution res = new ScaledResolution(this.mc);
+            ScaledResolution res = new ScaledResolution(this.mc, this.mc.displayWidth, this.mc.displayHeight);
             int descriptionOffsetX = (res.getScaledWidth() / 2) - 84;
             int descriptionOffsetY = (res.getScaledHeight() / 2) - 20;
             Utils.HUD.drawColouredText("Edit the HUD position by dragging.", '-', descriptionOffsetX,
@@ -439,7 +439,7 @@ public class HUD extends Module {
 				if (this.mouseDown) {
                     this.marginX = this.lastMousePosX + (mousePosX - this.sessionMousePosX);
                     this.marginY = this.lastMousePosY + (mousePosY - this.sessionMousePosY);
-                    sr = new ScaledResolution(mc);
+                    sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
                     positionMode = Utils.HUD.getPostitionMode(marginX, marginY, sr.getScaledWidth(),
                             sr.getScaledHeight());
 

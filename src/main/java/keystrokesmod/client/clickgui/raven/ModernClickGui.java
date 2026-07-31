@@ -54,7 +54,7 @@ public class ModernClickGui extends GuiScreen {
 
     @Override
     public void initGui() {
-        ScaledResolution sr = new ScaledResolution(mc);
+        ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
         this.x = (sr.getScaledWidth() - width) / 2;
         this.y = (sr.getScaledHeight() - height) / 2;
         refreshModules();
@@ -118,7 +118,7 @@ public class ModernClickGui extends GuiScreen {
             int bgAlpha = (int) ((15 - i * 3) * alpha);
             drawRect(0, 0, this.width, this.height, (bgAlpha << 24));
         }
-        ScaledResolution sr = new ScaledResolution(mc);
+        ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
         particleSystem.render(mouseX, mouseY, sr.getScaledWidth(), sr.getScaledHeight(), alpha);
     }
     
@@ -229,7 +229,7 @@ public class ModernClickGui extends GuiScreen {
         
         // Enable scissor for module area
         GL11.glEnable(GL11.GL_SCISSOR_TEST);
-        ScaledResolution sr = new ScaledResolution(mc);
+        ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
         int factor = sr.getScaleFactor();
         GL11.glScissor(gridStartX * factor, (mc.displayHeight - (gridStartY + gridHeight)) * factor, 
                      gridWidth * factor, gridHeight * factor);

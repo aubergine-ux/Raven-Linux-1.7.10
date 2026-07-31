@@ -74,7 +74,7 @@ public class ChestStealer extends Module {
     public void generatePath(ContainerChest chest) {
         ArrayList<Slot> slots = new ArrayList<Slot>();
         for (int i = 0; i < chest.getLowerChestInventory().getSizeInventory(); i++) {
-            if (chest.getInventory().get(i) != null)
+            if (chest.getLowerChestInventory().getStackInSlot(i) != null)
                 slots.add(new Slot(i));
         }
         Slot[] ss = sort(slots.toArray(new Slot[slots.size()]));

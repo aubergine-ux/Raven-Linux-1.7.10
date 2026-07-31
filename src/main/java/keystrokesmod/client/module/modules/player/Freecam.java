@@ -43,13 +43,13 @@ public class Freecam extends Module {
             en.setVelocity(0.0D, 0.0D, 0.0D);
             en.setInvisible(true);
             mc.theWorld.addEntityToWorld(-8008, en);
-            mc.setRenderViewEntity(en);
+            mc.renderViewEntity = en;
         }
     }
 
     public void onDisable() {
         if (en != null) {
-            mc.setRenderViewEntity(mc.thePlayer);
+            mc.renderViewEntity = mc.thePlayer;
             mc.thePlayer.rotationYaw = mc.thePlayer.rotationYawHead = this.sAng[0];
             mc.thePlayer.rotationPitch = this.sAng[1];
             mc.theWorld.removeEntity(en);
@@ -154,7 +154,6 @@ public class Freecam extends Module {
     public void onForgeEvent(ForgeEvent fe) {
         if (fe.getEvent() instanceof RenderWorldLastEvent) {
             if (Utils.Player.isPlayerInGame()) {
-                mc.thePlayer.renderArmPitch = mc.thePlayer.prevRenderArmPitch = 700.0F;
                 Utils.HUD.drawBoxAroundEntity(mc.thePlayer, 1, 0.0D, 0.0D, Color.green.getRGB(), false);
                 Utils.HUD.drawBoxAroundEntity(mc.thePlayer, 2, 0.0D, 0.0D, Color.green.getRGB(), false);
             }

@@ -13,7 +13,7 @@ import keystrokesmod.client.main.Raven;
 import keystrokesmod.client.module.modules.HUD;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
-import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.util.ResourceLocation;
 
@@ -34,7 +34,7 @@ public class RenderUtils {
 
 
     public static void glScissor(int x, int y, int width, int height) {
-        int scale = new ScaledResolution(Raven.mc).getScaleFactor();
+        int scale = new ScaledResolution(Raven.mc, Raven.mc.displayWidth, Raven.mc.displayHeight).getScaleFactor();
         GL11.glScissor(
                         x * scale,
                         (Raven.mc.displayHeight - ((((y/height) + height)) * scale)),
@@ -107,7 +107,7 @@ public class RenderUtils {
         GL11.glScaled(2.0, 2.0, 2.0);
         GL11.glEnable(3042);
         GL11.glPopAttrib();
-        GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f);
+        GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
     }
 
     public static void roundHelper(float x, float y, float radius, int pn, int pn2, int originalRotation, int finalRotation) {
@@ -165,7 +165,7 @@ public class RenderUtils {
         GL11.glScaled(2.0, 2.0, 2.0);
         GL11.glPopAttrib();
         GL11.glLineWidth(1.0f);
-        GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f);
+        GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
     }
 
     public static void drawBorderedRoundedRect(float x, float y, float d, float y1, float radius, float borderSize, int borderC, int insideC, boolean[] round) {
@@ -188,5 +188,21 @@ public class RenderUtils {
         } catch (IOException | IllegalArgumentException | NullPointerException noway) {
             return new ResourceLocation("null");
         }
+    }
+
+    /**
+     * 1.7.10 compatibility: drawModalRectWithCustomSizedTexture does not exist in 1.7.10 Gui class.
+     * This reimplements it using the Tessellator.
+     */
+    public static void drawModalRectWithCustomSizedTexture(int x, int y, float u, float v, int width, int height, float textureWidth, float textureHeight) {
+        float f = 1.0F / textureWidth;
+        float f1 = 1.0F / textureHeight;
+        Tessellator tessellator = Tessellator.instance;
+        tessellator.startDrawingQuads();
+        tessellator.addVertexWithUV((double) x, (double) (y + height), 0.0D, (double) (u * f), (double) ((v + (float) height) * f1));
+        tessellator.addVertexWithUV((double) (x + width), (double) (y + height), 0.0D, (double) ((u + (float) width) * f), (double) ((v + (float) height) * f1));
+        tessellator.addVertexWithUV((double) (x + width), (double) y, 0.0D, (double) ((u + (float) width) * f), (double) (v * f1));
+        tessellator.addVertexWithUV((double) x, (double) y, 0.0D, (double) (u * f), (double) (v * f1));
+        tessellator.draw();
     }
 }

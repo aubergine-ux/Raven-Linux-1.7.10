@@ -5,7 +5,6 @@ import org.lwjgl.opengl.GL11;
 import keystrokesmod.client.module.setting.Setting;
 import keystrokesmod.client.module.setting.impl.ComboSetting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GlStateManager;
 
 public class ComboComponent extends SettingComponent {
 
@@ -24,7 +23,7 @@ public class ComboComponent extends SettingComponent {
 
         GL11.glPushMatrix();
         GL11.glScaled(0.5D, 0.5D, 0.5D);
-        GlStateManager.resetColor();
+        GL11.glColor4f(1f, 1f, 1f, 1f);
         int width = (int) (Minecraft.getMinecraft().fontRendererObj.getStringWidth(this.setting.getName() + ": ") * 0.5);
         Minecraft.getMinecraft().fontRendererObj.drawString(
                 setting.getName() + ":",

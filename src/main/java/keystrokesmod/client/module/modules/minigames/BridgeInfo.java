@@ -13,15 +13,13 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.BlockPos;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
-import net.minecraftforge.fml.client.config.GuiButtonExt;
+import cpw.mods.fml.client.config.GuiButtonExt;
 
 import java.awt.*;
 import java.io.IOException;
@@ -33,8 +31,9 @@ public class BridgeInfo extends Module {
     private static int hudX = 5;
     private static int hudY = 70;
     private String en = "";
-    private BlockPos g1p;
-    private BlockPos g2p;
+    private int g1x, g1y, g1z;
+    private int g2x, g2y, g2z;
+    private boolean g1set, g2set;
     private boolean q;
     private double d1;
     private double d2;
@@ -65,29 +64,36 @@ public class BridgeInfo extends Module {
 
             for (Entity e : mc.theWorld.loadedEntityList) {
                 if (e instanceof EntityPlayer) {
-                    if (e.getName().equals(this.en)) {
+                    if (e.getCommandSenderName().equals(this.en)) {
                         enem = (EntityPlayer) e;
                     }
-                } else if (e instanceof EntityArmorStand) {
+                } else if (!(e instanceof EntityPlayer) && e.getCommandSenderName() != null) {
+                    // ArmorStand doesn't exist in 1.7.10 - check by entity custom name instead
                     String g2t = "Jump in to score!";
                     String g1t = "Defend!";
-                    if (e.getName().contains(g1t)) {
-                        this.g1p = e.getPosition();
-                    } else if (e.getName().contains(g2t)) {
-                        this.g2p = e.getPosition();
+                    if (e.getCommandSenderName().contains(g1t)) {
+                        this.g1x = (int) e.posX;
+                        this.g1y = (int) e.posY;
+                        this.g1z = (int) e.posZ;
+                        this.g1set = true;
+                    } else if (e.getCommandSenderName().contains(g2t)) {
+                        this.g2x = (int) e.posX;
+                        this.g2y = (int) e.posY;
+                        this.g2z = (int) e.posZ;
+                        this.g2set = true;
                     }
                 }
             }
 
-            if (this.g1p != null && this.g2p != null) {
+            if (this.g1set && this.g2set) {
                 this.d1 = Utils.Java
-                        .round(mc.thePlayer.getDistance(this.g2p.getX(), this.g2p.getY(), this.g2p.getZ()) - 1.4D, 1);
+                        .round(mc.thePlayer.getDistance(this.g2x, this.g2y, this.g2z) - 1.4D, 1);
                 if (this.d1 < 0.0D) {
                     this.d1 = 0.0D;
                 }
 
                 this.d2 = enem == null ? 0.0D
-                        : Utils.Java.round(enem.getDistance(this.g1p.getX(), this.g1p.getY(), this.g1p.getZ()) - 1.4D,
+                        : Utils.Java.round(enem.getDistance(this.g1x, this.g1y, this.g1z) - 1.4D,
                                 1);
                 if (this.d2 < 0.0D) {
                     this.d2 = 0.0D;
@@ -99,7 +105,7 @@ public class BridgeInfo extends Module {
             for (int i = 0; i < 9; ++i) {
                 ItemStack stack = mc.thePlayer.inventory.getStackInSlot(i);
                 if (stack != null && stack.getItem() instanceof ItemBlock
-                        && ((ItemBlock) stack.getItem()).block.equals(Blocks.stained_hardened_clay)) {
+                        && ((ItemBlock) stack.getItem()).field_150939_a.equals(Blocks.stained_hardened_clay)) {
                     blc2 += stack.stackSize;
                 }
             }
@@ -173,8 +179,8 @@ public class BridgeInfo extends Module {
     private void rv() {
         this.en = "";
         this.q = false;
-        this.g1p = null;
-        this.g2p = null;
+        this.g1set = false;
+        this.g2set = false;
         this.d1 = 0.0D;
         this.d2 = 0.0D;
         this.blc = 0;
@@ -215,7 +221,7 @@ public class BridgeInfo extends Module {
             this.maY = maY;
             hudX = miX;
             hudY = miY;
-            ScaledResolution res = new ScaledResolution(this.mc);
+            ScaledResolution res = new ScaledResolution(this.mc, this.mc.displayWidth, this.mc.displayHeight);
             int x = res.getScaledWidth() / 2 - 84;
             int y = res.getScaledHeight() / 2 - 20;
             Utils.HUD.drawColouredText("Edit the HUD position by dragging.", '-', x, y, 2L, 0L, true,

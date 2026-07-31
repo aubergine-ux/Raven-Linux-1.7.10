@@ -1,18 +1,16 @@
 package keystrokesmod.client.mixin.mixins;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 
-import com.google.common.base.Predicates;
-
 import keystrokesmod.client.main.Raven;
 import keystrokesmod.client.module.Module;
 import keystrokesmod.client.module.modules.combat.HitBox;
 import keystrokesmod.client.module.modules.combat.Reach;
-import keystrokesmod.client.module.modules.combat.aura.KillAura;
 import keystrokesmod.client.module.modules.render.Fullbright;
 import keystrokesmod.client.module.modules.render.NoHurtCam;
 import org.spongepowered.asm.mixin.injection.At;
@@ -26,8 +24,6 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItemFrame;
 import net.minecraft.potion.Potion;
 import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.EntitySelectors;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
@@ -58,7 +54,8 @@ public class MixinEntityRenderer {
      */
     @Overwrite
     public void getMouseOver(float p_getMouseOver_1_) {
-        Entity entity = this.mc.getRenderViewEntity();
+        // 1.7.10: mc.renderViewEntity instead of mc.getRenderViewEntity()
+        Entity entity = this.mc.renderViewEntity;
         if ((entity != null) && (this.mc.theWorld != null)) {
             this.mc.mcProfiler.startSection("pick");
             this.mc.pointedEntity = null;
@@ -66,7 +63,11 @@ public class MixinEntityRenderer {
             this.mc.objectMouseOver = entity.rayTrace(reach, p_getMouseOver_1_);
             double distanceToVec = reach;
 
-            Vec3 vec3 = entity.getPositionEyes(p_getMouseOver_1_);
+            // 1.7.10: manual getPositionEyes with partial tick interpolation
+            double px = entity.prevPosX + (entity.posX - entity.prevPosX) * (double) p_getMouseOver_1_;
+            double py = entity.prevPosY + (entity.posY - entity.prevPosY) * (double) p_getMouseOver_1_ + (double) entity.getEyeHeight();
+            double pz = entity.prevPosZ + (entity.posZ - entity.prevPosZ) * (double) p_getMouseOver_1_;
+            Vec3 vec3 = Vec3.createVectorHelper(px, py, pz);
 
             if (this.mc.objectMouseOver != null)
                 distanceToVec = this.mc.objectMouseOver.hitVec.distanceTo(vec3);
@@ -76,16 +77,26 @@ public class MixinEntityRenderer {
             this.pointedEntity = null;
             Vec3 vec33 = null;
             float f = 1.0F;
-            List<Entity> list = this.mc.theWorld.getEntitiesInAABBexcluding(entity,
-                    entity.getEntityBoundingBox()
-                            .addCoord(vec31.xCoord * reach, vec31.yCoord * reach, vec31.zCoord * reach).expand(f, f, f),
-                    Predicates.and(EntitySelectors.NOT_SPECTATING, Entity::canBeCollidedWith));
+
+            // 1.7.10: getEntitiesWithinAABBExcludingEntity (no predicate param)
+            // then manually filter for canBeCollidedWith (no EntitySelectors.NOT_SPECTATING in 1.7.10)
+            List<Entity> allEntities = this.mc.theWorld.getEntitiesWithinAABBExcludingEntity(entity,
+                    entity.boundingBox
+                            .addCoord(vec31.xCoord * reach, vec31.yCoord * reach, vec31.zCoord * reach).expand(f, f, f));
+            List<Entity> list = new ArrayList<Entity>();
+            for (Entity e : allEntities) {
+                if (e.canBeCollidedWith()) {
+                    list.add(e);
+                }
+            }
+
             double d2 = distanceToVec;
 
             for (Entity entity1 : list) {
                 float f1 = entity1.getCollisionBorderSize();
                 double kms = HitBox.exp(entity1);
-                AxisAlignedBB axisalignedbb = entity1.getEntityBoundingBox().expand(f1, f1, f1).expand(kms, HitBox.b.isToggled()? kms : 0, kms);
+                // 1.7.10: entity.boundingBox instead of entity.getEntityBoundingBox()
+                AxisAlignedBB axisalignedbb = entity1.boundingBox.expand(f1, f1, f1).expand(kms, HitBox.b.isToggled()? kms : 0, kms);
                 MovingObjectPosition movingobjectposition = axisalignedbb.calculateIntercept(vec3, vec32);
                 if (axisalignedbb.isVecInside(vec3)) {
                     if (d2 >= 0.0D) {
@@ -96,7 +107,8 @@ public class MixinEntityRenderer {
                 } else if (movingobjectposition != null) {
                     double d3 = vec3.distanceTo(movingobjectposition.hitVec);
                     if ((d3 < d2) || (d2 == 0.0D))
-                        if ((entity1 == entity.ridingEntity) && !entity.canRiderInteract()) {
+                        // 1.7.10: no canRiderInteract() - just check riding entity
+                        if (entity1 == entity.ridingEntity) {
                             if (d2 == 0.0D) {
                                 this.pointedEntity = entity1;
                                 vec33 = movingobjectposition.hitVec;
@@ -137,7 +149,8 @@ public class MixinEntityRenderer {
                     float f2 = world.provider.getLightBrightnessTable()[i / 16] * f1;
                     float f3 = world.provider.getLightBrightnessTable()[i % 16] * ((this.torchFlickerX * 0.1F) + 1.5F);
 
-                    if (world.getLastLightningBolt() > 0)
+                    // 1.7.10: world.lastLightningBolt (field) instead of world.getLastLightningBolt() (method)
+                    if (world.lastLightningBolt > 0)
                         f2 = world.provider.getLightBrightnessTable()[i / 16];
 
                     float f4 = f2 * ((f * 0.65F) + 0.35F);
@@ -159,7 +172,8 @@ public class MixinEntityRenderer {
                         f10 = (f10 * (1.0F - f11)) + (f10 * 0.6F * f11);
                     }
 
-                    if (world.provider.getDimensionId() == 1) {
+                    // 1.7.10: world.provider.dimensionId (field) instead of getDimensionId() (method)
+                    if (world.provider.dimensionId == 1) {
                         f8 = 0.22F + (f3 * 0.75F);
                         f9 = 0.28F + (f6 * 0.75F);
                         f10 = 0.25F + (f7 * 0.75F);
